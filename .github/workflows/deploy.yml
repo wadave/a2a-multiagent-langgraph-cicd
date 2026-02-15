@@ -7,20 +7,24 @@ on:
       - main
 
 env:
-  PROJECT_ID: dw-genai-prod
-  PROJECT_NUMBER: ${{ secrets.PROJECT_NUMBER }}
   REGION: us-central1
   SERVICE_NAME: a2a-frontend
-  PYTHON_VERSION: '3.13'
-  WORKLOAD_IDENTITY_PROVIDER: 'projects/101916374866/locations/global/workloadIdentityPools/github/providers/github-actions'
-  SERVICE_ACCOUNT: 'github-runner@dw-genai-prod.iam.gserviceaccount.com'
+  PYTHON_VERSION: '3.12'
 
 jobs:
-  deploy:
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: 'read'
       id-token: 'write'
+
+    env:
+      PROJECT_ID: dw-genai-prod
+      PROJECT_NUMBER: '101916374866'
+      WORKLOAD_IDENTITY_PROVIDER: '${{ secrets.STAGING_WORKLOAD_IDENTITY_PROVIDER }}'
+      SERVICE_ACCOUNT: '${{ secrets.STAGING_SERVICE_ACCOUNT }}'
 
     steps:
       - name: Checkout Code
@@ -41,8 +45,11 @@ jobs:
       - name: Deploy Cocktail MCP Server
         id: deploy_cocktail_mcp
         run: |
+          gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
+            --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
+            --project ${{ env.PROJECT_ID }}
           gcloud run deploy cocktail-remote-mcp-server-lg \
-            --source ./src/mcp_servers/cocktail_mcp_server \
+            --image gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }} \
             --no-allow-unauthenticated \
@@ -53,8 +60,103 @@ jobs:
       - name: Deploy Weather MCP Server
         id: deploy_weather_mcp
         run: |
+          gcloud builds submit ./src/mcp_servers/weather_mcp_server \
+            --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
+            --project ${{ env.PROJECT_ID }}
           gcloud run deploy weather-remote-mcp-server-lg \
-            --source ./src/mcp_servers/weather_mcp_server \
+            --image gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --no-allow-unauthenticated \
+            --platform managed \
+            --format='value(status.url)' > /tmp/weather_mcp_url.txt
+          echo "url=$(cat /tmp/weather_mcp_url.txt)" >> "$GITHUB_OUTPUT"
+
+      # 3. Deploy A2A Agents
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Run A2A Deploy Script
+        env:
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
+          GOOGLE_CLOUD_REGION: ${{ env.REGION }}
+          CT_MCP_SERVER_URL: '${{ steps.deploy_cocktail_mcp.outputs.url }}/mcp/'
+          WEA_MCP_SERVER_URL: '${{ steps.deploy_weather_mcp.outputs.url }}/mcp/'
+          PYTHONPATH: src/a2a_agents
+        run: |
+          uv run python deployment/deploy_agents.py
+
+      # 4. Deploy Frontend to Cloud Run
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source ./src/frontend \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --no-allow-unauthenticated \
+            --platform managed
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    env:
+      PROJECT_ID: dw-genai-prod
+      PROJECT_NUMBER: '101916374866'
+      WORKLOAD_IDENTITY_PROVIDER: '${{ secrets.PROD_WORKLOAD_IDENTITY_PROVIDER }}'
+      SERVICE_ACCOUNT: '${{ secrets.PROD_SERVICE_ACCOUNT }}'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: '${{ env.SERVICE_ACCOUNT }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 2. Deploy MCP Servers to Cloud Run
+      - name: Deploy Cocktail MCP Server
+        id: deploy_cocktail_mcp
+        run: |
+          gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
+            --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
+            --project ${{ env.PROJECT_ID }}
+          gcloud run deploy cocktail-remote-mcp-server-lg \
+            --image gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --no-allow-unauthenticated \
+            --platform managed \
+            --format='value(status.url)' > /tmp/cocktail_mcp_url.txt
+          echo "url=$(cat /tmp/cocktail_mcp_url.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Weather MCP Server
+        id: deploy_weather_mcp
+        run: |
+          gcloud builds submit ./src/mcp_servers/weather_mcp_server \
+            --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
+            --project ${{ env.PROJECT_ID }}
+          gcloud run deploy weather-remote-mcp-server-lg \
+            --image gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }} \
             --no-allow-unauthenticated \
