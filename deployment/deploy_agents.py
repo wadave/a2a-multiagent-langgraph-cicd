@@ -33,6 +33,9 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
     }
     env_vars.update(extra_env_vars)
 
+    # Vertex AI rejects empty string env var values
+    env_vars = {k: v for k, v in env_vars.items() if v}
+
     logging.info(f"Deploying {agent_name} to Agent Engine...")
 
     # Ensure "a2a_agents" is always included in extra_packages
@@ -142,8 +145,7 @@ def main():
             bucket_name,
             {
                 "WEA_MCP_SERVER_URL": wea_mcp_url,
-                "GOOGLE_GENAI_MODEL": google_genai_model,
-                "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
+                "GOOGLE_GENAI_MODEL": google_genai_model
             },
             ["a2a_agents"]
         )
