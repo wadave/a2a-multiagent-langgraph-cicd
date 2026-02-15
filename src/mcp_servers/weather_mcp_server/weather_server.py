@@ -194,7 +194,6 @@ async def get_forecast_by_city(city: str, state: str) -> str:
 
 
 # --- Add shutdown event to close client ---
-@mcp.on_event('shutdown')
 async def shutdown_event():
     """Gracefully close the httpx client."""
     await http_client.aclose()
