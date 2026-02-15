@@ -1,10 +1,12 @@
 # Cloud Run Service for Cocktail MCP Server
 resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
+  deletion_protection = false
   name     = "cocktail-remote-mcp-server-lg"
   location = var.region
   project  = var.cicd_runner_project_id
 
   template {
+    timeout = "300s"
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/cocktail-remote-mcp-server-lg:latest"
       
@@ -25,11 +27,13 @@ resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
 
 # Cloud Run Service for Weather MCP Server
 resource "google_cloud_run_v2_service" "weather_mcp_server" {
+  deletion_protection = false
   name     = "weather-remote-mcp-server-lg"
   location = var.region
   project  = var.cicd_runner_project_id
 
   template {
+    timeout = "300s"
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/weather-remote-mcp-server-lg:latest"
       
@@ -50,11 +54,13 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
 
 # Cloud Run Service for the A2A Frontend
 resource "google_cloud_run_v2_service" "a2a_frontend" {
+  deletion_protection = false
   name     = "a2a-frontend-lg"
   location = var.region
   project  = var.cicd_runner_project_id
 
   template {
+    timeout = "300s"
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/a2a-frontend-lg:latest"
       
