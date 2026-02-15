@@ -49,6 +49,7 @@ jobs:
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
+          PYTHONPATH: src/a2a_agents
         run: |
           uv run python deployment/deploy_agents.py
 

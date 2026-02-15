@@ -7,14 +7,14 @@ import vertexai
 from google.genai import types
 from vertexai.preview.reasoning_engines import A2aAgent
 
-from src.a2a_agents.cocktail_agent.cocktail_agent_card import cocktail_agent_card
-from src.a2a_agents.cocktail_agent.agent_executor import CocktailAgentExecutor
+from cocktail_agent.cocktail_agent_card import cocktail_agent_card
+from cocktail_agent.agent_executor import CocktailAgentExecutor
 
-from src.a2a_agents.weather_agent.weather_agent_card import weather_agent_card
-from src.a2a_agents.weather_agent.agent_executor import WeatherAgentExecutor
+from weather_agent.weather_agent_card import weather_agent_card
+from weather_agent.agent_executor import WeatherAgentExecutor
 
-from src.a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card
-from src.a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
+from hosting_agent.hosting_agent_card import hosting_agent_card
+from hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
 
 logging.basicConfig(level=logging.INFO)
 
