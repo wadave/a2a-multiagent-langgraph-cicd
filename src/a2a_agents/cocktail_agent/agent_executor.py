@@ -14,11 +14,11 @@
 # Author: Dave Wang
 from typing import Any
 
-from common.langgraph_base_mcp_agent_executor import (
+from a2a_agents.common.langgraph_base_mcp_agent_executor import (
     LanggraphBaseMCPAgentExecutor,
 )
 
-from cocktail_agent.agent import CocktailAgent
+from a2a_agents.cocktail_agent.agent import CocktailAgent
 
 
 class CocktailAgentExecutor(LanggraphBaseMCPAgentExecutor):

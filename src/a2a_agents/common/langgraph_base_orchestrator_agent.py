@@ -79,7 +79,7 @@ class LanggraphBaseOrchestratorAgent(ABC):
         self.client_factory = client_factory
 
         # Import RemoteAgentConnections dynamically to avoid circular imports
-        from common.remote_connection import RemoteAgentConnections
+        from a2a_agents.common.remote_connection import RemoteAgentConnections
 
         self.RemoteAgentConnections = RemoteAgentConnections
         self.remote_agent_connections: dict[str, "RemoteAgentConnections"] = {}

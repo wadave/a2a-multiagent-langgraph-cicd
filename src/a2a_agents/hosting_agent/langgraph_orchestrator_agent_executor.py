@@ -20,10 +20,10 @@ from dotenv import load_dotenv
 if TYPE_CHECKING:
     from langgraph.graph.graph import CompiledGraph
 
-from common.langgraph_base_orchestrator_agent_executor import (
+from a2a_agents.common.langgraph_base_orchestrator_agent_executor import (
     LanggraphBaseOrchestratorAgentExecutor,
 )
-from hosting_agent.langgraph_orchestrator_agent import get_root_agent
+from a2a_agents.hosting_agent.langgraph_orchestrator_agent import get_root_agent
 
 load_dotenv()
 

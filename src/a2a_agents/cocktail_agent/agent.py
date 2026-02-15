@@ -14,7 +14,7 @@
 # Author: Dave Wang
 from typing import Any
 
-from common.langgraph_base_mcp_agent import LanggraphBaseMCPAgent
+from a2a_agents.common.langgraph_base_mcp_agent import LanggraphBaseMCPAgent
 
 
 class CocktailAgent(LanggraphBaseMCPAgent):

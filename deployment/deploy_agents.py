@@ -3,21 +3,21 @@ import sys
 import logging
 from dotenv import load_dotenv
 
-# Add src/a2a_agents to path for packaging logic so that cocktail_agent, weather_agent, hosting_agent are importable
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/a2a_agents")))
+# Add src to path for packaging logic so that a2a_agents are importable
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import vertexai
 from google.genai import types
 from vertexai.preview.reasoning_engines import A2aAgent
 
-from cocktail_agent.cocktail_agent_card import cocktail_agent_card
-from cocktail_agent.agent_executor import CocktailAgentExecutor
+from a2a_agents.cocktail_agent.cocktail_agent_card import cocktail_agent_card
+from a2a_agents.cocktail_agent.agent_executor import CocktailAgentExecutor
 
-from weather_agent.weather_agent_card import weather_agent_card
-from weather_agent.agent_executor import WeatherAgentExecutor
+from a2a_agents.weather_agent.weather_agent_card import weather_agent_card
+from a2a_agents.weather_agent.agent_executor import WeatherAgentExecutor
 
-from hosting_agent.hosting_agent_card import hosting_agent_card
-from hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
+from a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card
+from a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,9 +35,9 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
     logging.info(f"Deploying {agent_name} to Agent Engine...")
 
-    # Ensure "src/a2a_agents" is always included in extra_packages
-    if "src/a2a_agents" not in extra_packages:
-        extra_packages.append("src/a2a_agents")
+    # Ensure "src" is always included in extra_packages
+    if "src" not in extra_packages:
+        extra_packages.append("src")
 
     remote_agent = client.agent_engines.create(
         agent=agent,
@@ -54,7 +54,6 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
                 "langchain-core>=0.3.76",
                 "langchain-google-vertexai>=2.1.2",
                 "langchain-mcp-adapters>=0.1.10",
-                "langchain-openai>=0.3.33",
                 "langgraph>=0.6.8",
                 "pyowm==3.3.0",
                 "timezonefinder==6.5.6"
@@ -118,7 +117,7 @@ def main():
                 "CT_MCP_SERVER_URL": ct_mcp_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src/a2a_agents"]
+            ["src"]
         )
         deployed_agents["cocktail"] = ct_agent_name
     except Exception as e:
@@ -141,7 +140,7 @@ def main():
                 "GOOGLE_GENAI_MODEL": google_genai_model,
                 "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
             },
-            ["src/a2a_agents"]
+            ["src"]
         )
         deployed_agents["weather"] = wea_agent_name
     except Exception as e:
@@ -168,7 +167,7 @@ def main():
                 "CT_AGENT_URL": ct_agent_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src/a2a_agents"]
+            ["src"]
         )
         deployed_agents["hosting"] = host_agent_name
     except Exception as e:

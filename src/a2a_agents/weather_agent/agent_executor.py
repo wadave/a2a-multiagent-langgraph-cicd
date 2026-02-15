@@ -14,11 +14,11 @@
 # Author: Dave Wang
 from typing import Any
 
-from common.langgraph_base_mcp_agent_executor import (
+from a2a_agents.common.langgraph_base_mcp_agent_executor import (
     LanggraphBaseMCPAgentExecutor,
 )
 
-from weather_agent.agent import WeatherAgent
+from a2a_agents.weather_agent.agent import WeatherAgent
 
 
 class WeatherAgentExecutor(LanggraphBaseMCPAgentExecutor):

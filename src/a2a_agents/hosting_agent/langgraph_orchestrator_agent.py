@@ -17,7 +17,7 @@ import os
 import httpx
 from dotenv import load_dotenv
 
-from common.langgraph_base_orchestrator_agent import (
+from a2a_agents.common.langgraph_base_orchestrator_agent import (
     LanggraphBaseOrchestratorAgent,
 )
 
