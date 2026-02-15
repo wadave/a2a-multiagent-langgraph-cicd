@@ -117,9 +117,19 @@ jobs:
         if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         uses: hashicorp/setup-terraform@v3
 
+      - name: Ensure Terraform state bucket exists
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        run: |
+          gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
+          gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
+            --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+
       - name: Terraform Init
         if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=a2a-multiagent-langgraph-cicd/staging"
         working-directory: deployment/terraform
 
       - name: Terraform Apply
@@ -239,9 +249,19 @@ jobs:
         if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         uses: hashicorp/setup-terraform@v3
 
+      - name: Ensure Terraform state bucket exists
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        run: |
+          gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
+          gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
+            --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+
       - name: Terraform Init
         if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=a2a-multiagent-langgraph-cicd/prod"
         working-directory: deployment/terraform
 
       - name: Terraform Apply
