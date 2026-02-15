@@ -11,6 +11,8 @@ env:
   REGION: us-central1
   SERVICE_NAME: a2a-frontend
   PYTHON_VERSION: '3.12'
+  WORKLOAD_IDENTITY_PROVIDER: 'projects/53879904223/locations/global/workloadIdentityPools/github/providers/wadave-a2a-multiagent-lan-a6bb'
+  SERVICE_ACCOUNT: 'dw-genai-prod-runner@dw-genai-prod.iam.gserviceaccount.com'
 
 jobs:
   deploy:
@@ -28,8 +30,8 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          # Note: Fallback to GOOGLE_CREDENTIALS if WLC is not set up
-          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+          workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: '${{ env.SERVICE_ACCOUNT }}'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
