@@ -11,8 +11,8 @@ env:
   REGION: us-central1
   SERVICE_NAME: a2a-frontend
   PYTHON_VERSION: '3.12'
-  WORKLOAD_IDENTITY_PROVIDER: 'projects/53879904223/locations/global/workloadIdentityPools/github/providers/wadave-a2a-multiagent-lan-a6bb'
-  SERVICE_ACCOUNT: 'dw-genai-prod-runner@dw-genai-prod.iam.gserviceaccount.com'
+  WORKLOAD_IDENTITY_PROVIDER: 'projects/101916374866/locations/global/workloadIdentityPools/github/providers/github-actions'
+  SERVICE_ACCOUNT: 'github-runner@dw-genai-prod.iam.gserviceaccount.com'
 
 jobs:
   deploy:
