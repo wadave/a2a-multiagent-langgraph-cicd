@@ -1,7 +1,9 @@
-import os
 import sys
 import logging
 from dotenv import load_dotenv
+
+# Add src/a2a_agents to path for packaging logic so that cocktail_agent, weather_agent, hosting_agent are importable
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/a2a_agents")))
 
 import vertexai
 from google.genai import types
@@ -115,7 +117,7 @@ def main():
                 "CT_MCP_SERVER_URL": ct_mcp_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src/a2a_agents/common/", "src/a2a_agents/cocktail_agent/"]
+            ["src/a2a_agents"]
         )
         deployed_agents["cocktail"] = ct_agent_name
     except Exception as e:
@@ -138,7 +140,7 @@ def main():
                 "GOOGLE_GENAI_MODEL": google_genai_model,
                 "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
             },
-            ["src/a2a_agents/common/", "src/a2a_agents/weather_agent/"]
+            ["src/a2a_agents"]
         )
         deployed_agents["weather"] = wea_agent_name
     except Exception as e:
@@ -165,7 +167,7 @@ def main():
                 "CT_AGENT_URL": ct_agent_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src/a2a_agents/common/", "src/a2a_agents/hosting_agent/"]
+            ["src/a2a_agents"]
         )
         deployed_agents["hosting"] = host_agent_name
     except Exception as e:
