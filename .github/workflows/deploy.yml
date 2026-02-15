@@ -64,8 +64,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install uv
-          uv venv
+          python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
@@ -158,8 +157,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install uv
-          uv venv
+          python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
