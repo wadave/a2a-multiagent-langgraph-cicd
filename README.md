@@ -78,25 +78,18 @@ Ensure your project follows this structure:
 
 ```bash
 .
-├── a2a_multiagent_mcp_app
-│   ├── a2a_agents
-│   │   ├── cocktail_agent
-│   │   ├── common
-│   │   ├── deploy_cocktail_langgraph_agent.ipynb
-│   │   ├── deploy_langgraph_host_agent.ipynb
-│   │   ├── deploy_weather_langgraph_agent.ipynb
-│   │   ├── hosting_agent
-│   │   ├── __init__.py
-│   │   ├── README.md
-│   │   └── weather_agent
-│   └── frontend
-│       ├── Dockerfile
-│       ├── main.py
-│       ├── pyproject.toml
-│       ├── README.md
-│       ├── static
-│       └── uv.lock
-├── asset
+├── .github
+│   └── workflows
+│       └── deploy.yml      # CI/CD pipeline definition
+├── deployment
+│   ├── deploy_agents.py    # Script to deploy agents to Vertex AI Agent Engine
+│   └── terraform/          # Terraform configuration for infrastructure
+├── src
+│   ├── a2a_agents/         # Agent definitions (Cocktail, Weather, Hosting)
+│   ├── frontend/           # Streamlit/Gradio frontend application
+│   └── mcp_servers/        # MCP Server implementations (Cocktail, Weather)
+├── dev_notebooks/          # Jupyter notebooks for development/testing
+├── asset/
 │   ├── a2a_langgraph_diagram.png
 │   └── screenshot.png
 ├── LICENSE
@@ -105,17 +98,74 @@ Ensure your project follows this structure:
 └── uv.lock
 ```
 
-### 2. Deploy MCP servers
+## Deployment
 
-Navigate to the parent folder, and then navigate to `mcp_servers` sub directories and follow the `README.md` file to set up the MCP servers on Cloud Run.
+### CI/CD Pipeline
 
-### 3. Deploy A2A Agents
+This project uses **GitHub Actions** for continuous integration and deployment. The workflow is defined in `.github/workflows/deploy.yml` and triggers on pushes to the following branches:
 
-Navigate to the `a2a_multiagent_mcp_app/a2a_agents` sub directories and follow the `README.md` file to set up the A2A agents on Agent Engine.
+-   `staging`: Deploys to the staging environment (Project: `dw-genai-dev`).
+-   `main`: Deploys to the production environment (Project: `dw-genai-prod`).
 
-### 4. Run the Application
+The pipeline performs the following steps:
+1.  **Detect Changes**: Identifies which components (MCP servers, agents, frontend, infrastructure) have changed.
+2.  **Deploy MCP Servers**: Builds and deploys the Cocktail and Weather MCP servers to Cloud Run.
+3.  **Deploy Agents**: Uses `deployment/deploy_agents.py` to deploy the A2A agents (Hosting, Cocktail, Weather) to Vertex AI Agent Engine.
+4.  **Deploy Frontend**: Builds and deploys the frontend application to Cloud Run.
+5.  **Apply Terraform**: Updates the infrastructure configuration using Terraform.
 
-Navigate to either `a2a_multiagent_mcp_app/frontend` and follow the `README.md` to run the application.
+### Manual Deployment / Local Development
+
+To manually deploy the application or set it up for development, follow these steps:
+
+1.  **Prerequisites**:
+    *   [Python 3.12+](https://www.python.org/downloads/)
+    *   [gcloud SDK](https://cloud.google.com/sdk/docs/install)
+    *   [uv](https://docs.astral.sh/uv/getting-started/installation/) (Recommended package manager)
+
+2.  **Environment Setup**:
+    *   Authenticate with Google Cloud:
+        ```bash
+        gcloud auth login
+        gcloud auth application-default login
+        gcloud config set project YOUR_PROJECT_ID
+        ```
+    *   Install dependencies using `uv`:
+        ```bash
+        uv sync
+        ```
+
+3.  **Deploy Components**:
+    You can mimic the CI/CD steps locally:
+
+    *   **MCP Servers**:
+        ```bash
+        gcloud builds submit ./src/mcp_servers/cocktail_mcp_server --tag gcr.io/YOUR_PROJECT_ID/cocktail-remote-mcp-server-lg
+        gcloud builds submit ./src/mcp_servers/weather_mcp_server --tag gcr.io/YOUR_PROJECT_ID/weather-remote-mcp-server-lg
+        ```
+
+    *   **A2A Agents**:
+        Set the required environment variables:
+        ```bash
+        export PROJECT_ID=YOUR_PROJECT_ID
+        export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
+        export GOOGLE_CLOUD_REGION=us-central1
+        # URLs of the deployed MCP servers from the previous step
+        export CT_MCP_SERVER_URL=https://...
+        export WEA_MCP_SERVER_URL=https://...
+        ```
+        Run the deployment script:
+        ```bash
+        python deployment/deploy_agents.py
+        ```
+
+    *   **Frontend**:
+        ```bash
+        gcloud builds submit ./src/frontend --tag gcr.io/YOUR_PROJECT_ID/a2a-frontend
+        ```
+
+### Development Notebooks
+For interactive development and testing of individual agents, you can refer to the notebooks in the `dev_notebooks/` directory.
 
 ## Disclaimer
 

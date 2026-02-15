@@ -29,6 +29,26 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Detect which components have code changes
+      - name: Detect changed components
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            cocktail_mcp:
+              - 'src/mcp_servers/cocktail_mcp_server/**'
+            weather_mcp:
+              - 'src/mcp_servers/weather_mcp_server/**'
+            agents:
+              - 'src/a2a_agents/**'
+              - 'deployment/deploy_agents.py'
+            frontend:
+              - 'src/frontend/**'
+            terraform:
+              - 'deployment/terraform/**'
 
       # 1. Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
@@ -41,34 +61,37 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # 2. Deploy MCP Servers to Cloud Run
+      # 2. Deploy MCP Servers to Cloud Run (only if code changed)
       - name: Deploy Cocktail MCP Server
-        id: deploy_cocktail_mcp
+        if: steps.changes.outputs.cocktail_mcp == 'true'
         run: |
           gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
             --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
       - name: Deploy Weather MCP Server
-        id: deploy_weather_mcp
+        if: steps.changes.outputs.weather_mcp == 'true'
         run: |
           gcloud builds submit ./src/mcp_servers/weather_mcp_server \
             --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
-      # 3. Deploy A2A Agents
+      # 3. Deploy A2A Agents (only if code changed)
       - name: Set up Python
+        if: steps.changes.outputs.agents == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
+        if: steps.changes.outputs.agents == 'true'
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
+        if: steps.changes.outputs.agents == 'true'
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -76,25 +99,30 @@ jobs:
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
           CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
-          PYTHONPATH: src/a2a_agents
+          PYTHONPATH: src
         run: |
           .venv/bin/python deployment/deploy_agents.py
 
+      # 4. Deploy Frontend (only if code changed)
       - name: Build Frontend Image
+        if: steps.changes.outputs.frontend == 'true'
         run: |
           gcloud builds submit ./src/frontend \
             --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend \
             --project ${{ env.PROJECT_ID }}
 
-      # 4. Deploy Infrastructure via Terraform
+      # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
+        if: steps.changes.outputs.terraform == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        if: steps.changes.outputs.terraform == 'true'
         run: terraform init
         working-directory: deployment/terraform
-        
+
       - name: Terraform Apply
+        if: steps.changes.outputs.terraform == 'true'
         run: |
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
@@ -122,6 +150,26 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Detect which components have code changes
+      - name: Detect changed components
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            cocktail_mcp:
+              - 'src/mcp_servers/cocktail_mcp_server/**'
+            weather_mcp:
+              - 'src/mcp_servers/weather_mcp_server/**'
+            agents:
+              - 'src/a2a_agents/**'
+              - 'deployment/deploy_agents.py'
+            frontend:
+              - 'src/frontend/**'
+            terraform:
+              - 'deployment/terraform/**'
 
       # 1. Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
@@ -134,34 +182,37 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # 2. Deploy MCP Servers to Cloud Run
+      # 2. Deploy MCP Servers to Cloud Run (only if code changed)
       - name: Deploy Cocktail MCP Server
-        id: deploy_cocktail_mcp
+        if: steps.changes.outputs.cocktail_mcp == 'true'
         run: |
           gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
             --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
       - name: Deploy Weather MCP Server
-        id: deploy_weather_mcp
+        if: steps.changes.outputs.weather_mcp == 'true'
         run: |
           gcloud builds submit ./src/mcp_servers/weather_mcp_server \
             --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
-      # 3. Deploy A2A Agents
+      # 3. Deploy A2A Agents (only if code changed)
       - name: Set up Python
+        if: steps.changes.outputs.agents == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
+        if: steps.changes.outputs.agents == 'true'
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
+        if: steps.changes.outputs.agents == 'true'
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -169,25 +220,30 @@ jobs:
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
           CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
-          PYTHONPATH: src/a2a_agents
+          PYTHONPATH: src
         run: |
           .venv/bin/python deployment/deploy_agents.py
 
+      # 4. Deploy Frontend (only if code changed)
       - name: Build Frontend Image
+        if: steps.changes.outputs.frontend == 'true'
         run: |
           gcloud builds submit ./src/frontend \
             --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend \
             --project ${{ env.PROJECT_ID }}
 
-      # 4. Deploy Infrastructure via Terraform
+      # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
+        if: steps.changes.outputs.terraform == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
+        if: steps.changes.outputs.terraform == 'true'
         run: terraform init
         working-directory: deployment/terraform
-        
+
       - name: Terraform Apply
+        if: steps.changes.outputs.terraform == 'true'
         run: |
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
