@@ -23,8 +23,8 @@ jobs:
     env:
       PROJECT_ID: dw-genai-prod
       PROJECT_NUMBER: '101916374866'
-      WORKLOAD_IDENTITY_PROVIDER: '${{ secrets.STAGING_WORKLOAD_IDENTITY_PROVIDER }}'
-      SERVICE_ACCOUNT: '${{ secrets.STAGING_SERVICE_ACCOUNT }}'
+      WORKLOAD_IDENTITY_PROVIDER: 'projects/101916374866/locations/global/workloadIdentityPools/github/providers/github-actions'
+      SERVICE_ACCOUNT: 'github-runner@dw-genai-prod.iam.gserviceaccount.com'
 
     steps:
       - name: Checkout Code
@@ -115,8 +115,8 @@ jobs:
     env:
       PROJECT_ID: dw-genai-prod
       PROJECT_NUMBER: '101916374866'
-      WORKLOAD_IDENTITY_PROVIDER: '${{ secrets.PROD_WORKLOAD_IDENTITY_PROVIDER }}'
-      SERVICE_ACCOUNT: '${{ secrets.PROD_SERVICE_ACCOUNT }}'
+      WORKLOAD_IDENTITY_PROVIDER: 'projects/101916374866/locations/global/workloadIdentityPools/github/providers/github-actions'
+      SERVICE_ACCOUNT: 'github-runner@dw-genai-prod.iam.gserviceaccount.com'
 
     steps:
       - name: Checkout Code
