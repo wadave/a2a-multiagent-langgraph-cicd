@@ -64,10 +64,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "machine us-python.pkg.dev login oauth2accesstoken password $(gcloud auth print-access-token)" > ~/.netrc
           pip install uv
           uv venv
-          uv pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          .venv/bin/pip install keyrings.google-artifactregistry-auth
+          .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
         id: deploy_agents
@@ -79,7 +79,7 @@ jobs:
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src/a2a_agents
         run: |
-          uv run python deployment/deploy_agents.py
+          .venv/bin/python deployment/deploy_agents.py
 
       - name: Build Frontend Image
         run: |
@@ -158,10 +158,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "machine us-python.pkg.dev login oauth2accesstoken password $(gcloud auth print-access-token)" > ~/.netrc
           pip install uv
           uv venv
-          uv pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          .venv/bin/pip install keyrings.google-artifactregistry-auth
+          .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
         id: deploy_agents
@@ -173,7 +173,7 @@ jobs:
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src/a2a_agents
         run: |
-          uv run python deployment/deploy_agents.py
+          .venv/bin/python deployment/deploy_agents.py
 
       - name: Build Frontend Image
         run: |
