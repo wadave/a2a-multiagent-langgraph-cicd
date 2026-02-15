@@ -64,7 +64,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install uv
+          pip install uv keyrings.google-artifactregistry-auth
+          uv pip install keyrings.google-artifactregistry-auth
           uv sync
 
       - name: Run A2A Deploy Script
@@ -156,7 +157,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install uv
+          pip install uv keyrings.google-artifactregistry-auth
+          uv pip install keyrings.google-artifactregistry-auth
           uv sync
 
       - name: Run A2A Deploy Script
