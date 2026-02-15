@@ -1,5 +1,5 @@
 [project]
-name = "a2a-on-ae-multiagent-langgraph"
+name = "a2a-multiagent-langgraph-cicd"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
