@@ -25,4 +25,12 @@ dependencies = [
     "python-dotenv>=1.0.0",
 ]
 
+[tool.uv]
+[[tool.uv.index]]
+name = "google-ar"
+url = "https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/"
+explicit = true
 
+[tool.uv.sources]
+a2a-sdk = { index = "google-ar" }
+google-adk = { index = "google-ar" }
