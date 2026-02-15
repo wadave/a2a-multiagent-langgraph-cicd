@@ -39,7 +39,7 @@ weather_agent_skill = AgentSkill(
 
 # Use the helper function to create a complete Agent Card
 weather_agent_card = create_agent_card(
-    agent_name="Weather Agent - LangGraph",
+    agent_name="Weather Agent lg - LangGraph",
     description="A helpful assistant agent that can answer questions.",
     skills=[weather_agent_skill],
 )

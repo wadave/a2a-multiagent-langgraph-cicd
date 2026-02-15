@@ -8,7 +8,7 @@ from fastmcp import FastMCP
 
 
 # Initialize FastMCP server
-mcp = FastMCP('cocktail MCP server')
+mcp = FastMCP('cocktail lg MCP server')
 
 # Constants
 API_BASE_URL = 'https://www.thecocktaildb.com/api/json/v1/1/'

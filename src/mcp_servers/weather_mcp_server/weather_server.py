@@ -11,7 +11,7 @@ from geopy.geocoders import Nominatim
 
 
 # Initialize FastMCP server
-mcp = FastMCP('weather MCP server')
+mcp = FastMCP('weather lg MCP server')
 
 
 # --- Configuration & Constants ---

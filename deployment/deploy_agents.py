@@ -93,7 +93,7 @@ def main():
     # Deploy Cocktail Agent
     ct_agent_name = deploy_agent(
         client,
-        "Cocktail Agent",
+        "Cocktail lg Agent",
         cocktail_agent_card,
         CocktailAgentExecutor,
         project_id,
@@ -110,7 +110,7 @@ def main():
     # Deploy Weather Agent
     wea_agent_name = deploy_agent(
         client,
-        "Weather Agent",
+        "Weather lg Agent",
         weather_agent_card,
         WeatherAgentExecutor,
         project_id,
@@ -132,7 +132,7 @@ def main():
     # Deploy Hosting Agent
     host_agent_name = deploy_agent(
         client,
-        "Hosting Agent",
+        "Hosting lg Agent",
         hosting_agent_card,
         HostingAgentExecutor,
         project_id,
