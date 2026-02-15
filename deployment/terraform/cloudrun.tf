@@ -85,3 +85,4 @@ resource "google_cloud_run_v2_service" "a2a_frontend" {
     percent = 100
   }
 }
+ 
