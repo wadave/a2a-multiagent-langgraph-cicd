@@ -32,6 +32,10 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
     logging.info(f"Deploying {agent_name} to Agent Engine...")
 
+    # Ensure "src/a2a_agents" is always included in extra_packages
+    if "src/a2a_agents" not in extra_packages:
+        extra_packages.append("src/a2a_agents")
+
     remote_agent = client.agent_engines.create(
         agent=agent,
         config={
