@@ -11,7 +11,7 @@ resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
       resources {
         limits = {
           cpu    = "1000m"
-          memory = "512Mi"
+          memory = "1024Mi"
         }
       }
     }
@@ -36,7 +36,7 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
       resources {
         limits = {
           cpu    = "1000m"
-          memory = "512Mi"
+          memory = "1024Mi"
         }
       }
     }
@@ -68,7 +68,7 @@ resource "google_cloud_run_v2_service" "a2a_frontend" {
       resources {
         limits = {
           cpu    = "1000m"
-          memory = "512Mi"
+          memory = "1024Mi"
         }
       }
     }
