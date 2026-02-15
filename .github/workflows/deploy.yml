@@ -1,0 +1,63 @@
+name: Deploy A2A Multiagent App
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+env:
+  PROJECT_ID: dw-genai-prod
+  REGION: us-central1
+  SERVICE_NAME: a2a-frontend
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          # Note: Fallback to GOOGLE_CREDENTIALS if WLC is not set up
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 2. Deploy A2A Agents
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Run A2A Deploy Script
+        env:
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          GOOGLE_CLOUD_REGION: ${{ env.REGION }}
+        run: |
+          uv run python deployment/deploy_agents.py
+
+      # 3. Deploy Frontend to Cloud Run
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source ./src/frontend \
+            --region ${{ env.REGION }} \
+            --project ${{ env.PROJECT_ID }} \
+            --allow-unauthenticated \
+            --platform managed
