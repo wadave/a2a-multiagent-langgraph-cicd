@@ -1,5 +1,5 @@
 import os
-import argparse
+import sys
 import logging
 from dotenv import load_dotenv
 
@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 
 def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, project_number, location, bucket_name, extra_env_vars, extra_packages):
     agent = A2aAgent(agent_card=agent_card, agent_executor_builder=executor_builder)
-    
+
     env_vars = {
         "PROJECT_ID": project_id,
         "LOCATION": location,
@@ -29,9 +29,9 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
         "DEBUG_MODE": "False",
     }
     env_vars.update(extra_env_vars)
-    
+
     logging.info(f"Deploying {agent_name} to Agent Engine...")
-    
+
     remote_agent = client.agent_engines.create(
         agent=agent,
         config={
@@ -67,7 +67,7 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
 def main():
     load_dotenv()
-    
+
     project_id = os.environ.get("PROJECT_ID")
     location = os.environ.get("GOOGLE_CLOUD_REGION", "us-central1")
     project_number = os.environ.get("PROJECT_NUMBER")
@@ -76,7 +76,14 @@ def main():
 
     if not project_id or not project_number:
         logging.error("PROJECT_ID and PROJECT_NUMBER must be set in environment.")
-        return
+        sys.exit(1)
+
+    ct_mcp_url = os.environ.get("CT_MCP_SERVER_URL")
+    wea_mcp_url = os.environ.get("WEA_MCP_SERVER_URL")
+
+    if not ct_mcp_url or not wea_mcp_url:
+        logging.error("CT_MCP_SERVER_URL and WEA_MCP_SERVER_URL must be set in environment.")
+        sys.exit(1)
 
     vertexai.init(project=project_id, location=location, staging_bucket=f"gs://{bucket_name}")
     client = vertexai.Client(
@@ -87,67 +94,88 @@ def main():
         ),
     )
 
-    ct_mcp_url = os.environ.get("CT_MCP_SERVER_URL")
-    wea_mcp_url = os.environ.get("WEA_MCP_SERVER_URL")
-    
+    deployed_agents = {}
+
     # Deploy Cocktail Agent
-    ct_agent_name = deploy_agent(
-        client,
-        "Cocktail lg Agent",
-        cocktail_agent_card,
-        CocktailAgentExecutor,
-        project_id,
-        project_number,
-        location,
-        bucket_name,
-        {
-            "CT_MCP_SERVER_URL": ct_mcp_url,
-            "GOOGLE_GENAI_MODEL": google_genai_model
-        },
-        ["src/a2a_agents/common/", "src/a2a_agents/cocktail_agent/"]
-    )
-    
+    try:
+        ct_agent_name = deploy_agent(
+            client,
+            "Cocktail lg Agent",
+            cocktail_agent_card,
+            CocktailAgentExecutor,
+            project_id,
+            project_number,
+            location,
+            bucket_name,
+            {
+                "CT_MCP_SERVER_URL": ct_mcp_url,
+                "GOOGLE_GENAI_MODEL": google_genai_model
+            },
+            ["src/a2a_agents/common/", "src/a2a_agents/cocktail_agent/"]
+        )
+        deployed_agents["cocktail"] = ct_agent_name
+    except Exception as e:
+        logging.error(f"Failed to deploy Cocktail Agent: {e}")
+        sys.exit(1)
+
     # Deploy Weather Agent
-    wea_agent_name = deploy_agent(
-        client,
-        "Weather lg Agent",
-        weather_agent_card,
-        WeatherAgentExecutor,
-        project_id,
-        project_number,
-        location,
-        bucket_name,
-        {
-            "WEA_MCP_SERVER_URL": wea_mcp_url,
-            "GOOGLE_GENAI_MODEL": google_genai_model,
-            "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
-        },
-        ["src/a2a_agents/common/", "src/a2a_agents/weather_agent/"]
-    )
-    
+    try:
+        wea_agent_name = deploy_agent(
+            client,
+            "Weather lg Agent",
+            weather_agent_card,
+            WeatherAgentExecutor,
+            project_id,
+            project_number,
+            location,
+            bucket_name,
+            {
+                "WEA_MCP_SERVER_URL": wea_mcp_url,
+                "GOOGLE_GENAI_MODEL": google_genai_model,
+                "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
+            },
+            ["src/a2a_agents/common/", "src/a2a_agents/weather_agent/"]
+        )
+        deployed_agents["weather"] = wea_agent_name
+    except Exception as e:
+        logging.error(f"Failed to deploy Weather Agent: {e}")
+        sys.exit(1)
+
     # Build URL endpoints for the agents based on their resource name
     ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}:query"
     wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}:query"
-    
+
     # Deploy Hosting Agent
-    host_agent_name = deploy_agent(
-        client,
-        "Hosting lg Agent",
-        hosting_agent_card,
-        HostingAgentExecutor,
-        project_id,
-        project_number,
-        location,
-        bucket_name,
-        {
-            "WEA_AGENT_URL": wea_agent_url,
-            "CT_AGENT_URL": ct_agent_url,
-            "GOOGLE_GENAI_MODEL": google_genai_model
-        },
-        ["src/a2a_agents/common/", "src/a2a_agents/hosting_agent/"]
-    )
+    try:
+        host_agent_name = deploy_agent(
+            client,
+            "Hosting lg Agent",
+            hosting_agent_card,
+            HostingAgentExecutor,
+            project_id,
+            project_number,
+            location,
+            bucket_name,
+            {
+                "WEA_AGENT_URL": wea_agent_url,
+                "CT_AGENT_URL": ct_agent_url,
+                "GOOGLE_GENAI_MODEL": google_genai_model
+            },
+            ["src/a2a_agents/common/", "src/a2a_agents/hosting_agent/"]
+        )
+        deployed_agents["hosting"] = host_agent_name
+    except Exception as e:
+        logging.error(f"Failed to deploy Hosting Agent: {e}")
+        sys.exit(1)
+
+    logging.info("All agents deployed successfully.")
     
-    logging.info(f"All agents deployed successfully.")
+    # Export the Hosting Agent ID to GITHUB_OUTPUT for the Frontend Cloud Run deployment
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        with open(github_output, "a") as f:
+            f.write(f"AGENT_ENGINE_ID={host_agent_name}\n")
+        logging.info("Exported AGENT_ENGINE_ID to GITHUB_OUTPUT.")
 
 if __name__ == "__main__":
     main()

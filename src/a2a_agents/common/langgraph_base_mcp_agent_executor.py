@@ -109,30 +109,6 @@ class LanggraphBaseMCPAgentExecutor(AgentExecutor, ABC):
             Factory function for creating authenticated httpx clients
         """
 
-        # def google_auth_client_factory(
-        #     headers=None,
-        #     timeout=None,
-        #     auth=None,  # noqa: ARG001
-        # ):
-        #     """Factory that creates httpx.AsyncClient with Google Auth."""
-        #     auth_request = AuthRequest()
-        #     id_token = fetch_id_token(auth_request, url)
-# 
-        #     # Merge custom headers with auth headers
-        #     client_headers = {
-        #         "Content-Type": "application/json",
-        #         "Authorization": f"Bearer {id_token}",
-        #     }
-        #     if headers:
-        #         client_headers.update(headers)
-# 
-        #     return httpx.AsyncClient(
-        #         headers=client_headers,
-        #         timeout=timeout if timeout is not None else 120,
-        #     )
-# 
-        # return google_auth_client_factory
-    
         def google_auth_client_factory(
             headers=None,
             timeout=None,

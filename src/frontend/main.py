@@ -70,9 +70,6 @@ client = vertexai.Client(
 remote_a2a_agent_resource_name = f"projects/{PROJECT_NUMBER}/locations/us-central1/reasoningEngines/{AGENT_ENGINE_ID}"
 
 
-load_dotenv()
-
-
 class GoogleAuth(httpx.Auth):
     """A custom httpx Auth class for Google Cloud authentication."""
 

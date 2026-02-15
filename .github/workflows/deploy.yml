@@ -84,6 +84,7 @@ jobs:
           uv sync
 
       - name: Run A2A Deploy Script
+        id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
@@ -102,7 +103,8 @@ jobs:
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }} \
             --no-allow-unauthenticated \
-            --platform managed
+            --platform managed \
+            --set-env-vars="AGENT_ENGINE_ID=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
@@ -176,6 +178,7 @@ jobs:
           uv sync
 
       - name: Run A2A Deploy Script
+        id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
@@ -194,4 +197,5 @@ jobs:
             --region ${{ env.REGION }} \
             --project ${{ env.PROJECT_ID }} \
             --no-allow-unauthenticated \
-            --platform managed
+            --platform managed \
+            --set-env-vars="AGENT_ENGINE_ID=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"

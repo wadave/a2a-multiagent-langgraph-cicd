@@ -30,7 +30,7 @@ class WeatherAgentExecutor(LanggraphBaseMCPAgentExecutor):
 
     def get_mcp_server_name(self) -> str:
         """Return the MCP server name for Weather agent."""
-        return "weather"
+        return "Weather"
 
     def create_agent(self, mcp_tools: list[Any]) -> WeatherAgent:
         """Create and return the WeatherAgent instance."""
