@@ -35,9 +35,9 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
     logging.info(f"Deploying {agent_name} to Agent Engine...")
 
-    # Ensure "src" is always included in extra_packages
-    if "src" not in extra_packages:
-        extra_packages.append("src")
+    # Ensure "a2a_agents" is always included in extra_packages
+    if "a2a_agents" not in extra_packages:
+        extra_packages.append("a2a_agents")
 
     remote_agent = client.agent_engines.create(
         agent=agent,
@@ -72,6 +72,11 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
 
 def main():
+    # Change current working directory to src so extra_packages path resolves correctly in Reasoning Engine
+    src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
+    os.chdir(src_dir)
+    logging.info(f"Changed working directory to {src_dir}")
+
     load_dotenv()
 
     project_id = os.environ.get("PROJECT_ID")
@@ -117,7 +122,7 @@ def main():
                 "CT_MCP_SERVER_URL": ct_mcp_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src"]
+            ["a2a_agents"]
         )
         deployed_agents["cocktail"] = ct_agent_name
     except Exception as e:
@@ -140,7 +145,7 @@ def main():
                 "GOOGLE_GENAI_MODEL": google_genai_model,
                 "OPENWEATHER_API_KEY": os.environ.get("OPENWEATHER_API_KEY", "")
             },
-            ["src"]
+            ["a2a_agents"]
         )
         deployed_agents["weather"] = wea_agent_name
     except Exception as e:
@@ -167,7 +172,7 @@ def main():
                 "CT_AGENT_URL": ct_agent_url,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
-            ["src"]
+            ["a2a_agents"]
         )
         deployed_agents["hosting"] = host_agent_name
     except Exception as e:
