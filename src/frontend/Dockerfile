@@ -24,7 +24,7 @@ WORKDIR /app
 
 RUN uv sync --frozen
 
-EXPOSE 8080
+EXPOSE $PORT
 
 ENV PYTHONUNBUFFERED=1
 
