@@ -8,7 +8,7 @@ on:
 
 env:
   REGION: us-central1
-  SERVICE_NAME: a2a-frontend
+  SERVICE_NAME: a2a-frontend-lg
   PYTHON_VERSION: '3.12'
 
 jobs:
@@ -47,6 +47,7 @@ jobs:
               - 'deployment/deploy_agents.py'
             frontend:
               - 'src/frontend/**'
+              - '.github/workflows/deploy.yml'
             terraform:
               - 'deployment/terraform/**'
 
@@ -108,21 +109,21 @@ jobs:
         if: steps.changes.outputs.frontend == 'true'
         run: |
           gcloud builds submit ./src/frontend \
-            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend \
+            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg \
             --project ${{ env.PROJECT_ID }}
 
       # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         run: terraform init
         working-directory: deployment/terraform
 
       - name: Terraform Apply
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         run: |
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
@@ -168,6 +169,7 @@ jobs:
               - 'deployment/deploy_agents.py'
             frontend:
               - 'src/frontend/**'
+              - '.github/workflows/deploy.yml'
             terraform:
               - 'deployment/terraform/**'
 
@@ -229,21 +231,21 @@ jobs:
         if: steps.changes.outputs.frontend == 'true'
         run: |
           gcloud builds submit ./src/frontend \
-            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend \
+            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg \
             --project ${{ env.PROJECT_ID }}
 
       # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         run: terraform init
         working-directory: deployment/terraform
 
       - name: Terraform Apply
-        if: steps.changes.outputs.terraform == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
         run: |
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \

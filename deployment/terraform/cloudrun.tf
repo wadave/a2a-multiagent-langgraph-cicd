@@ -50,13 +50,13 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
 
 # Cloud Run Service for the A2A Frontend
 resource "google_cloud_run_v2_service" "a2a_frontend" {
-  name     = "a2a-frontend"
+  name     = "a2a-frontend-lg"
   location = var.region
   project  = var.cicd_runner_project_id
 
   template {
     containers {
-      image = "gcr.io/${var.cicd_runner_project_id}/a2a-frontend:latest"
+      image = "gcr.io/${var.cicd_runner_project_id}/a2a-frontend-lg:latest"
       
       env {
         name  = "AGENT_ENGINE_ID"
