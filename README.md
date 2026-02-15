@@ -66,64 +66,67 @@ Here are some example questions you can ask the chatbot:
 
 ### Prerequisites
 
-Before running the application locally, ensure you have the following installed:
+Before running the application locally or setting up CI/CD, ensure you have the following installed:
 
 1.  [Python 3.12+](https://www.python.org/downloads/)
-2.  gcloud SDK: [https://cloud.google.com/sdk/docs/install](https://cloud.google.com/sdk/docs/install)
-3.  **(Optional) uv:** The Python package management tool used in this project. Follow the installation guide: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+2.  [gcloud SDK](https://cloud.google.com/sdk/docs/install)
+3.  [uv](https://docs.astral.sh/uv/getting-started/installation/) (The Python package management tool used in this project)
+4.  [Terraform](https://developer.hashicorp.com/terraform/downloads) (For infrastructure provisioning)
+5.  [GitHub CLI (gh)](https://cli.github.com/) (Required for automated CI/CD setup)
+6.  [Docker](https://docs.docker.com/get-docker/) (For local container builds)
 
-### 1. Project Structure
+### CI/CD Pipeline Setup
 
-Ensure your project follows this structure:
+This project uses **GitHub Actions** for continuous integration and deployment. The infrastructure is managed by **Terraform**.
 
-```bash
-.
-├── .github
-│   └── workflows
-│       └── deploy.yml      # CI/CD pipeline definition
-├── deployment
-│   ├── deploy_agents.py    # Script to deploy agents to Vertex AI Agent Engine
-│   └── terraform/          # Terraform configuration for infrastructure
-├── src
-│   ├── a2a_agents/         # Agent definitions (Cocktail, Weather, Hosting)
-│   ├── frontend/           # Streamlit/Gradio frontend application
-│   └── mcp_servers/        # MCP Server implementations (Cocktail, Weather)
-├── dev_notebooks/          # Jupyter notebooks for development/testing
-├── asset/
-│   ├── a2a_langgraph_diagram.png
-│   └── screenshot.png
-├── LICENSE
-├── pyproject.toml
-├── README.md
-└── uv.lock
-```
+To automatically set up the CI/CD pipeline, repository, and infrastructure, use the `agent-starter-pack`:
 
-## Deployment
+1.  **Environment Setup**:
+    *   Authenticate with Google Cloud:
+        ```bash
+        gcloud auth login
+        gcloud auth application-default login
+        ```
+    *   Authenticate with GitHub CLI:
+        ```bash
+        gh auth login
+        ```
+    *   Create and activate a virtual environment, then install dependencies:
+        ```bash
+        uv venv
+        source .venv/bin/activate
+        uv pip install agent-starter-pack --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+        ```
 
-### CI/CD Pipeline
+2.  **Run CI/CD Setup**:
+    Navigate to the root of the project and run the setup command. Replace the project IDs and repository details with your own:
+    ```bash
+    agent-starter-pack setup-cicd \
+      --dev-project YOUR_DEV_PROJECT_ID \
+      --staging-project YOUR_STAGING_PROJECT_ID \
+      --prod-project YOUR_PROD_PROJECT_ID \
+      --repository-name YOUR_REPO_NAME \
+      --repository-owner YOUR_GITHUB_USERNAME \
+      --cicd-runner github_actions
+    ```
 
-This project uses **GitHub Actions** for continuous integration and deployment. The workflow is defined in `.github/workflows/deploy.yml` and triggers on pushes to the following branches:
+3.  **GitHub Actions Workflow**:
+    Once the setup is complete, the workflow defined in `.github/workflows/deploy.yml` takes over. It triggers on pushes to:
+    -   `staging`: Deploys to the staging environment (Project: `YOUR_STAGING_PROJECT_ID`).
+    -   `main`: Deploys to the production environment (Project: `YOUR_PROD_PROJECT_ID`).
 
--   `staging`: Deploys to the staging environment (Project: `dw-genai-dev`).
--   `main`: Deploys to the production environment (Project: `dw-genai-prod`).
-
-The pipeline performs the following steps:
-1.  **Detect Changes**: Identifies which components (MCP servers, agents, frontend, infrastructure) have changed.
-2.  **Deploy MCP Servers**: Builds and deploys the Cocktail and Weather MCP servers to Cloud Run.
-3.  **Deploy Agents**: Uses `deployment/deploy_agents.py` to deploy the A2A agents (Hosting, Cocktail, Weather) to Vertex AI Agent Engine.
-4.  **Deploy Frontend**: Builds and deploys the frontend application to Cloud Run.
-5.  **Apply Terraform**: Updates the infrastructure configuration using Terraform.
+    The pipeline performs the following steps:
+    1.  **Detect Changes**: Identifies which components (MCP servers, agents, frontend, infrastructure) have changed.
+    2.  **Deploy MCP Servers**: Builds and deploys the Cocktail and Weather MCP servers to Cloud Run.
+    3.  **Deploy Agents**: Uses `deployment/deploy_agents.py` to deploy the A2A agents (Hosting, Cocktail, Weather) to Vertex AI Agent Engine.
+    4.  **Deploy Frontend**: Builds and deploys the frontend application to Cloud Run.
+    5.  **Apply Terraform**: Updates the infrastructure configuration using Terraform.
 
 ### Manual Deployment / Local Development
 
-To manually deploy the application or set it up for development, follow these steps:
+To manually deploy the application or set it up for development without the automated CI/CD pipeline, follow these steps:
 
-1.  **Prerequisites**:
-    *   [Python 3.12+](https://www.python.org/downloads/)
-    *   [gcloud SDK](https://cloud.google.com/sdk/docs/install)
-    *   [uv](https://docs.astral.sh/uv/getting-started/installation/) (Recommended package manager)
-
-2.  **Environment Setup**:
+1.  **Environment Setup**:
     *   Authenticate with Google Cloud:
         ```bash
         gcloud auth login
@@ -135,7 +138,7 @@ To manually deploy the application or set it up for development, follow these st
         uv sync
         ```
 
-3.  **Deploy Components**:
+2.  **Deploy Components**:
     You can mimic the CI/CD steps locally:
 
     *   **MCP Servers**:
