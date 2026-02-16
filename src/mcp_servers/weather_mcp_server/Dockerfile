@@ -4,5 +4,5 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 COPY . /app
 ENV PATH="/app/.venv/bin:$PATH"
-RUN uv sync
+RUN uv sync --no-install-project --index-url https://pypi.org/simple
 ENTRYPOINT ["uv", "run", "fastmcp", "run", "weather_server.py"]
