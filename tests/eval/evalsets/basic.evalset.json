@@ -1,34 +1,265 @@
 {
-  "eval_set_id": "basic_eval",
-  "name": "Basic Agent Evaluation",
-  "description": "Sample evaluation set for testing core agent functionality. Customize these cases based on your DESIGN_SPEC.md.",
+  "eval_set_id": "a2a_multiagent_eval",
+  "name": "A2A Multi-Agent Evaluation",
+  "description": "Evaluation cases for the Hosting (orchestrator), Cocktail, and Weather agents covering direct responses, tool use, routing, and edge cases.",
   "eval_cases": [
     {
-      "eval_id": "greeting",
+      "eval_id": "greeting_hello",
       "conversation": [
         {
           "user_content": {
-            "parts": [{"text": "Hello, what can you help me with?"}]
+            "parts": [{"text": "Hello!"}]
+          },
+          "intermediate_data": {
+            "tool_uses": []
           }
         }
       ],
       "session_input": {
-        "app_name": "app",
+        "app_name": "a2a-multiagent-langgraph",
         "user_id": "eval_user",
         "state": {}
       }
     },
     {
-      "eval_id": "weather_query",
+      "eval_id": "capabilities_question",
       "conversation": [
         {
           "user_content": {
-            "parts": [{"text": "What's the weather like in San Francisco?"}]
+            "parts": [{"text": "What can you help me with?"}]
+          },
+          "intermediate_data": {
+            "tool_uses": []
           }
         }
       ],
       "session_input": {
-        "app_name": "app",
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "cocktail_search_margarita",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Find me a margarita recipe"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_cocktail_by_name",
+                "args": {"name": "margarita"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "cocktail_random",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Give me a random cocktail"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "list_random_cocktails",
+                "args": {}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "cocktail_by_letter",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Show me cocktails starting with M"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "list_cocktails_by_first_letter",
+                "args": {"letter": "M"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "ingredient_search",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Tell me about vodka as an ingredient"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_ingredient_by_name",
+                "args": {"name": "vodka"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "weather_forecast_city",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "What's the weather in Los Angeles, CA?"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_forecast_by_city",
+                "args": {"city": "Los Angeles", "state": "CA"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "weather_alerts",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Are there any weather alerts for Texas?"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_active_alerts_by_state",
+                "args": {"state": "TX"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "routing_weather",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "What's the forecast for New York?"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "send_message",
+                "args": {"agent_name": "Weather Agent lg - LangGraph", "message": "What's the forecast for New York?"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "routing_cocktail",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "What cocktails can I make with rum?"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "send_message",
+                "args": {"agent_name": "Cocktail Agent lg - LangGraph", "message": "What cocktails can I make with rum?"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "nonexistent_cocktail",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Find a cocktail called xyznonexistent"}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_cocktail_by_name",
+                "args": {"name": "xyznonexistent"}
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
+        "user_id": "eval_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "ambiguous_query",
+      "conversation": [
+        {
+          "user_content": {
+            "parts": [{"text": "Tell me something interesting"}]
+          },
+          "intermediate_data": {
+            "tool_uses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "a2a-multiagent-langgraph",
         "user_id": "eval_user",
         "state": {}
       }

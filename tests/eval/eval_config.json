@@ -1,15 +1,32 @@
 {
   "criteria": {
+    "tool_trajectory_avg_score": 0.9,
     "rubric_based_final_response_quality_v1": {
       "threshold": 0.8,
       "rubrics": [
         {
           "rubricId": "relevance",
-          "rubricContent": { "textProperty": "The response directly addresses the user's query." }
+          "rubricContent": {
+            "textProperty": "The response directly addresses the user's query about weather or cocktails."
+          }
         },
         {
           "rubricId": "helpfulness",
-          "rubricContent": { "textProperty": "The response is helpful and provides useful information." }
+          "rubricContent": {
+            "textProperty": "The response provides useful and accurate information from the appropriate tool or agent."
+          }
+        },
+        {
+          "rubricId": "format",
+          "rubricContent": {
+            "textProperty": "The response is clearly formatted in Markdown with structured data from tool output."
+          }
+        },
+        {
+          "rubricId": "tool_routing",
+          "rubricContent": {
+            "textProperty": "The correct agent or tool is selected for the query: weather queries go to the Weather Agent, cocktail queries go to the Cocktail Agent, and greetings or capability questions are answered directly without tools."
+          }
         }
       ]
     }
