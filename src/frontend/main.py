@@ -183,6 +183,11 @@ async def get_response_from_agent(
                         # Find the first text part in the artifacts
                         if artifact.parts:
                             part = artifact.parts[0]
+
+                            # Debug: print the actual type and value
+                            print(f"DEBUG: part.root type: {type(part.root)}")
+                            print(f"DEBUG: part.root value: {str(part.root)[:200]}...")
+
                             # Try to access as TextPart
                             if isinstance(part.root, TextPart):
                                 final_result_text = part.root.text
@@ -196,18 +201,35 @@ async def get_response_from_agent(
                             # Try to parse as dict/list if it's serialized
                             else:
                                 try:
-                                    # Convert to string and try to parse
+                                    import ast
+                                    import json
+                                    import re
+
+                                    # Convert to string
                                     part_str = str(part.root)
+
+                                    # Check if it has "signature:" prefix and extract the list
+                                    if 'signature:' in part_str:
+                                        # Extract the part after "signature:"
+                                        match = re.search(r'signature:\s*(\[.*\])', part_str)
+                                        if match:
+                                            list_str = match.group(1)
+                                            parsed = ast.literal_eval(list_str)
+                                            if isinstance(parsed, list) and len(parsed) > 0:
+                                                if isinstance(parsed[0], dict) and 'text' in parsed[0]:
+                                                    final_result_text = parsed[0]['text']
+                                                    print(f"Extracted text from signature list: {final_result_text[:50]}...")
+                                                    break
                                     # If it looks like a list representation
-                                    if part_str.startswith('[') and 'text' in part_str:
-                                        import ast
+                                    elif part_str.startswith('[') and 'text' in part_str:
                                         parsed = ast.literal_eval(part_str)
                                         if isinstance(parsed, list) and len(parsed) > 0:
                                             if isinstance(parsed[0], dict) and 'text' in parsed[0]:
                                                 final_result_text = parsed[0]['text']
                                                 print(f"Extracted text from list: {final_result_text[:50]}...")
                                                 break
-                                except:
+                                except Exception as e:
+                                    print(f"DEBUG: Failed to parse - {e}")
                                     pass
                 if final_result_text:
                     break  # Stop iterating task updates

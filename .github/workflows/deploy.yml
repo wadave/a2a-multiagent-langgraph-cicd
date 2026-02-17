@@ -212,6 +212,26 @@ jobs:
             -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
 
+      # Force Cloud Run to pull new :latest image when frontend is rebuilt
+      - name: Force Frontend Update
+        if: steps.changes.outputs.frontend == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new frontend image..."
+          gcloud run services update a2a-frontend-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest
+
+      # Force Cloud Run to pull new :latest image when frontend is rebuilt
+      - name: Force Frontend Update
+        if: steps.changes.outputs.frontend == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new frontend image..."
+          gcloud run services update a2a-frontend-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest
+
   deploy-prod:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -399,3 +419,13 @@ jobs:
             -var="repository_owner=wadave" \
             -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
+
+      # Force Cloud Run to pull new :latest image when frontend is rebuilt
+      - name: Force Frontend Update
+        if: steps.changes.outputs.frontend == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new frontend image..."
+          gcloud run services update a2a-frontend-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest
