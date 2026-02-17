@@ -181,12 +181,34 @@ async def get_response_from_agent(
                 if hasattr(task_object, "artifacts") and task_object.artifacts:
                     for artifact in task_object.artifacts:
                         # Find the first text part in the artifacts
-                        if artifact.parts and isinstance(
-                            artifact.parts[0].root, TextPart
-                        ):
-                            final_result_text = artifact.parts[0].root.text
-                            print(f"Found artifact text: {final_result_text[:50]}...")
-                            break  # Stop looking at artifacts
+                        if artifact.parts:
+                            part = artifact.parts[0]
+                            # Try to access as TextPart
+                            if isinstance(part.root, TextPart):
+                                final_result_text = part.root.text
+                                print(f"Found artifact text: {final_result_text[:50]}...")
+                                break
+                            # Handle list/dict responses (e.g., from LangGraph agents)
+                            elif hasattr(part.root, 'text'):
+                                final_result_text = part.root.text
+                                print(f"Found text field: {final_result_text[:50]}...")
+                                break
+                            # Try to parse as dict/list if it's serialized
+                            else:
+                                try:
+                                    # Convert to string and try to parse
+                                    part_str = str(part.root)
+                                    # If it looks like a list representation
+                                    if part_str.startswith('[') and 'text' in part_str:
+                                        import ast
+                                        parsed = ast.literal_eval(part_str)
+                                        if isinstance(parsed, list) and len(parsed) > 0:
+                                            if isinstance(parsed[0], dict) and 'text' in parsed[0]:
+                                                final_result_text = parsed[0]['text']
+                                                print(f"Extracted text from list: {final_result_text[:50]}...")
+                                                break
+                                except:
+                                    pass
                 if final_result_text:
                     break  # Stop iterating task updates
 
