@@ -19,6 +19,8 @@ from a2a_agents.weather_agent.agent_executor import WeatherAgentExecutor
 from a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card
 from a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
 
+from agent_state_manager import AgentStateManager
+
 logging.basicConfig(level=logging.INFO)
 
 def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, project_number, location, bucket_name, extra_env_vars, extra_packages):
@@ -86,6 +88,10 @@ def main():
     google_genai_model = os.environ.get("GOOGLE_GENAI_MODEL", "gemini-2.5-flash")
     bucket_name = os.environ.get("BUCKET_NAME", f"{project_id}-bucket")
 
+    # Determine environment from branch or explicit env var
+    environment = os.environ.get("ENVIRONMENT", "staging")
+    state_manager = AgentStateManager(project_id, environment, location)
+
     if not project_id or not project_number:
         logging.error("PROJECT_ID and PROJECT_NUMBER must be set in environment.")
         sys.exit(1)
@@ -128,6 +134,7 @@ def main():
             ["a2a_agents"]
         )
         deployed_agents["cocktail"] = ct_agent_name
+        state_manager.update_agent("cocktail", ct_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Cocktail Agent: {e}")
         sys.exit(1)
@@ -152,6 +159,7 @@ def main():
             ["a2a_agents"]
         )
         deployed_agents["weather"] = wea_agent_name
+        state_manager.update_agent("weather", wea_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Weather Agent: {e}")
         sys.exit(1)
@@ -182,6 +190,7 @@ def main():
             ["a2a_agents"]
         )
         deployed_agents["hosting"] = host_agent_name
+        state_manager.update_agent("hosting", host_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Hosting Agent: {e}")
         sys.exit(1)

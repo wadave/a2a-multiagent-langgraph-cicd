@@ -12,6 +12,11 @@ on:
         required: false
         type: boolean
         default: false
+      redeploy_agents_for_mcp:
+        description: 'Redeploy agents when MCP servers change (cascade deployment)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   REGION: us-central1
@@ -69,6 +74,32 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      # Retrieve persisted agent state (for Terraform when agents not redeployed)
+      - name: Retrieve Agent State
+        id: retrieve_state
+        run: |
+          ENVIRONMENT="${{ github.ref == 'refs/heads/staging' && 'staging' || 'prod' }}"
+          STATE_URI="gs://${{ env.PROJECT_ID }}-terraform-state/a2a-multiagent-langgraph-cicd/${ENVIRONMENT}/agent_state.json"
+
+          echo "Attempting to retrieve state from ${STATE_URI}"
+
+          # Try to read state file
+          if gcloud storage cat "${STATE_URI}" > /tmp/agent_state.json 2>/dev/null; then
+            # Extract hosting agent resource name
+            HOSTING_AGENT=$(cat /tmp/agent_state.json | jq -r '.agents.hosting.resource_name // empty')
+
+            if [ -n "$HOSTING_AGENT" ]; then
+              echo "Retrieved hosting agent from state: ${HOSTING_AGENT}"
+              echo "PERSISTED_AGENT_ENGINE_ID=${HOSTING_AGENT}" >> $GITHUB_OUTPUT
+            else
+              echo "No hosting agent found in state file"
+              echo "PERSISTED_AGENT_ENGINE_ID=" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "State file not found (first deployment)"
+            echo "PERSISTED_AGENT_ENGINE_ID=" >> $GITHUB_OUTPUT
+          fi
+
       # 2. Deploy MCP Servers to Cloud Run (only if code changed)
       - name: Deploy Cocktail MCP Server
         if: steps.changes.outputs.cocktail_mcp == 'true'
@@ -86,25 +117,38 @@ jobs:
 
       # 3. Deploy A2A Agents (only if code changed)
       - name: Set up Python
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
+          ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'prod' }}
           CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src
@@ -121,18 +165,18 @@ jobs:
 
       # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Ensure Terraform state bucket exists
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
           gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
           gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
             --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
 
       - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
           terraform init \
             -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
@@ -140,8 +184,24 @@ jobs:
         working-directory: deployment/terraform
 
       - name: Terraform Apply
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
+          # Use freshly deployed agent ID if available, otherwise use persisted state
+          AGENT_ID="${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+          if [ -z "$AGENT_ID" ]; then
+            AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
+            echo "Using persisted agent ID from state: ${AGENT_ID}"
+          else
+            echo "Using freshly deployed agent ID: ${AGENT_ID}"
+          fi
+
+          # Validate agent ID is not empty or "unset"
+          if [ -z "$AGENT_ID" ] || [ "$AGENT_ID" == "unset" ]; then
+            echo "ERROR: No valid agent ID available. Cannot deploy frontend without hosting agent."
+            echo "This is the first deployment. Please run the deploy-clean workflow first."
+            exit 1
+          fi
+
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
@@ -149,7 +209,7 @@ jobs:
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
-            -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+            -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
 
   deploy-prod:
@@ -202,6 +262,32 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      # Retrieve persisted agent state (for Terraform when agents not redeployed)
+      - name: Retrieve Agent State
+        id: retrieve_state
+        run: |
+          ENVIRONMENT="${{ github.ref == 'refs/heads/staging' && 'staging' || 'prod' }}"
+          STATE_URI="gs://${{ env.PROJECT_ID }}-terraform-state/a2a-multiagent-langgraph-cicd/${ENVIRONMENT}/agent_state.json"
+
+          echo "Attempting to retrieve state from ${STATE_URI}"
+
+          # Try to read state file
+          if gcloud storage cat "${STATE_URI}" > /tmp/agent_state.json 2>/dev/null; then
+            # Extract hosting agent resource name
+            HOSTING_AGENT=$(cat /tmp/agent_state.json | jq -r '.agents.hosting.resource_name // empty')
+
+            if [ -n "$HOSTING_AGENT" ]; then
+              echo "Retrieved hosting agent from state: ${HOSTING_AGENT}"
+              echo "PERSISTED_AGENT_ENGINE_ID=${HOSTING_AGENT}" >> $GITHUB_OUTPUT
+            else
+              echo "No hosting agent found in state file"
+              echo "PERSISTED_AGENT_ENGINE_ID=" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "State file not found (first deployment)"
+            echo "PERSISTED_AGENT_ENGINE_ID=" >> $GITHUB_OUTPUT
+          fi
+
       # 2. Deploy MCP Servers to Cloud Run (only if code changed)
       - name: Deploy Cocktail MCP Server
         if: steps.changes.outputs.cocktail_mcp == 'true'
@@ -219,25 +305,38 @@ jobs:
 
       # 3. Deploy A2A Agents (only if code changed)
       - name: Set up Python
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
           .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
-        if: steps.changes.outputs.agents == 'true'
+        if: |
+          steps.changes.outputs.agents == 'true' ||
+          github.event.inputs.force_deploy_all == 'true' ||
+          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
+           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
           PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
+          ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'prod' }}
           CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src
@@ -254,18 +353,18 @@ jobs:
 
       # 5. Deploy Infrastructure via Terraform (only if config changed)
       - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         uses: hashicorp/setup-terraform@v3
 
       - name: Ensure Terraform state bucket exists
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
           gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
           gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
             --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
 
       - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
           terraform init \
             -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
@@ -273,8 +372,24 @@ jobs:
         working-directory: deployment/terraform
 
       - name: Terraform Apply
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true'
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true'
         run: |
+          # Use freshly deployed agent ID if available, otherwise use persisted state
+          AGENT_ID="${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+          if [ -z "$AGENT_ID" ]; then
+            AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
+            echo "Using persisted agent ID from state: ${AGENT_ID}"
+          else
+            echo "Using freshly deployed agent ID: ${AGENT_ID}"
+          fi
+
+          # Validate agent ID is not empty or "unset"
+          if [ -z "$AGENT_ID" ] || [ "$AGENT_ID" == "unset" ]; then
+            echo "ERROR: No valid agent ID available. Cannot deploy frontend without hosting agent."
+            echo "This is the first deployment. Please run the deploy-clean workflow first."
+            exit 1
+          fi
+
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
@@ -282,5 +397,5 @@ jobs:
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
-            -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+            -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
