@@ -60,6 +60,6 @@ adk eval tests/eval/evalsets/basic.evalset.json --config tests/eval/eval_config.
 
 1. Add a new entry to `eval_cases` in `basic.evalset.json`
 2. Set `tool_uses` to the expected tool calls (empty array for direct responses)
-3. Use `app_name: "a2a-multiagent-langgraph"` in `session_input`
+3. Use `app_name: "a2a-multiagent-adk-memory"` in `session_input`
 
 See [ADK documentation](https://google.github.io/adk-docs/) for advanced evaluation options.

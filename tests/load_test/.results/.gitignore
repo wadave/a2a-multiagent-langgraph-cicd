@@ -1,0 +1,8 @@
+# Ignore all load test results
+*.csv
+*.html
+*.log
+
+# Keep the README
+!README.md
+!.gitignore

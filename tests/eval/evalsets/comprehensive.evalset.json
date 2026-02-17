@@ -1,0 +1,181 @@
+{
+  "name": "Comprehensive Agent Evaluation Set",
+  "description": "Comprehensive test cases for multi-agent system with weather and cocktail capabilities",
+  "examples": [
+    {
+      "id": "weather-simple-01",
+      "category": "weather",
+      "input": "What's the weather in New York?",
+      "expected_agent": "Weather Agent adk-mb - ADK",
+      "expected_tools": ["get_forecast_by_city"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "weather-coordinates-01",
+      "category": "weather",
+      "input": "Get forecast for coordinates 40.7128, -74.0060",
+      "expected_agent": "Weather Agent adk-mb - ADK",
+      "expected_tools": ["get_forecast"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "weather-alert-01",
+      "category": "weather",
+      "input": "Are there any weather alerts in Colorado?",
+      "expected_agent": "Weather Agent adk-mb - ADK",
+      "expected_tools": ["get_active_alerts_by_state"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "cocktail-search-01",
+      "category": "cocktail",
+      "input": "What are the ingredients for a Margarita?",
+      "expected_agent": "Cocktail Agent adk-mb - ADK",
+      "expected_tools": ["search_cocktail_by_name"],
+      "expected_response_contains": ["Tequila", "Triple sec", "Lime juice"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "cocktail-random-01",
+      "category": "cocktail",
+      "input": "Give me a random cocktail",
+      "expected_agent": "Cocktail Agent adk-mb - ADK",
+      "expected_tools": ["list_random_cocktails"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "cocktail-letter-01",
+      "category": "cocktail",
+      "input": "List cocktails starting with M",
+      "expected_agent": "Cocktail Agent adk-mb - ADK",
+      "expected_tools": ["list_cocktails_by_first_letter"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "cocktail-ingredient-01",
+      "category": "cocktail",
+      "input": "Tell me about vodka as an ingredient",
+      "expected_agent": "Cocktail Agent adk-mb - ADK",
+      "expected_tools": ["search_ingredient_by_name"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "multi-agent-01",
+      "category": "multi-agent",
+      "input": "What's the weather in Miami and what cocktail should I drink there?",
+      "expected_agents": ["Weather Agent adk-mb - ADK", "Cocktail Agent adk-mb - ADK"],
+      "expected_tools": ["get_forecast_by_city", "list_random_cocktails"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "multi-agent-02",
+      "category": "multi-agent",
+      "input": "Is it raining in Seattle and can you suggest a warm drink?",
+      "expected_agents": ["Weather Agent adk-mb - ADK", "Cocktail Agent adk-mb - ADK"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 0.9,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "general-greeting-01",
+      "category": "general",
+      "input": "Hello, how are you?",
+      "expected_agent": "Hosting Agent adk-mb - ADK",
+      "expected_tools": [],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "general-capabilities-01",
+      "category": "general",
+      "input": "What can you help me with?",
+      "expected_agent": "Hosting Agent adk-mb - ADK",
+      "expected_tools": ["list_remote_agents"],
+      "expected_response_contains": ["weather", "cocktail"],
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 1.0,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "memory-continuity-01",
+      "category": "memory",
+      "input": "What did I ask about earlier?",
+      "expected_agent": "Hosting Agent adk-mb - ADK",
+      "expected_tools": ["preload_memory"],
+      "notes": "Tests memory recall functionality",
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 0.8,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "error-handling-01",
+      "category": "error-handling",
+      "input": "What's the weather on Mars?",
+      "expected_agent": "Weather Agent adk-mb - ADK",
+      "notes": "Should handle gracefully when location not found",
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 0.7,
+        "tool_routing": 1.0
+      }
+    },
+    {
+      "id": "error-handling-02",
+      "category": "error-handling",
+      "input": "Find me a cocktail called XYZ123NotReal",
+      "expected_agent": "Cocktail Agent adk-mb - ADK",
+      "notes": "Should handle gracefully when cocktail not found",
+      "rubric_scores": {
+        "relevance": 1.0,
+        "helpfulness": 0.7,
+        "tool_routing": 1.0
+      }
+    }
+  ],
+  "metadata": {
+    "created": "2026-02-17",
+    "version": "1.0",
+    "agent_version": "adk-mb"
+  }
+}

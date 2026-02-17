@@ -5,6 +5,13 @@ on:
     branches:
       - staging
       - main
+  workflow_dispatch:
+    inputs:
+      force_deploy_all:
+        description: 'Force deploy all components (ignores path filters)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   REGION: us-central1
@@ -139,6 +146,7 @@ jobs:
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
+            -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
             -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
@@ -271,6 +279,7 @@ jobs:
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
+            -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
             -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"

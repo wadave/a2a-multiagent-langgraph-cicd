@@ -283,14 +283,23 @@ class LanggraphBaseOrchestratorAgent(ABC):
                 f"send_message called - Agent: {agent_name}, Message: {message[:50]}..."
             )
 
+        # Try exact match first, then try with " lg" suffix for backwards compatibility
+        resolved_agent_name = agent_name
         if agent_name not in self.remote_agent_connections:
-            available = list(self.remote_agent_connections.keys())
-            raise ValueError(f'Agent "{agent_name}" not found. Available: {available}')
+            # Try adding " lg" suffix
+            agent_name_with_suffix = f"{agent_name} lg"
+            if agent_name_with_suffix in self.remote_agent_connections:
+                resolved_agent_name = agent_name_with_suffix
+                if self.debug_mode:
+                    logger.debug(f"Resolved '{agent_name}' to '{resolved_agent_name}'")
+            else:
+                available = list(self.remote_agent_connections.keys())
+                raise ValueError(f'Agent "{agent_name}" not found. Available: {available}')
 
-        state["agent"] = agent_name
-        client = self.remote_agent_connections[agent_name]
+        state["agent"] = resolved_agent_name
+        client = self.remote_agent_connections[resolved_agent_name]
         if not client:
-            raise ValueError(f"Client not available for {agent_name}")
+            raise ValueError(f"Client not available for {resolved_agent_name}")
 
         task_id = state.get("task_id", None)
         context_id = state.get("context_id", None)

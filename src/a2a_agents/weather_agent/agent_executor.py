@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # Author: Dave Wang
+import os
 from typing import Any
 
 from a2a_agents.common.langgraph_base_mcp_agent_executor import (
@@ -26,7 +27,14 @@ class WeatherAgentExecutor(LanggraphBaseMCPAgentExecutor):
 
     def get_mcp_server_url(self) -> str:
         """Return the MCP server URL for Weather agent."""
-        return "https://weather-remote-mcp-server-496235138247.us-central1.run.app/mcp/"
+        # Try environment variable first
+        if "WEA_MCP_SERVER_URL" in os.environ:
+            return os.environ["WEA_MCP_SERVER_URL"]
+
+        # Otherwise construct from project number and region env vars
+        project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
+        region = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+        return f"https://weather-remote-mcp-server-lg-{project_number}.{region}.run.app/mcp/"
 
     def get_mcp_server_name(self) -> str:
         """Return the MCP server name for Weather agent."""

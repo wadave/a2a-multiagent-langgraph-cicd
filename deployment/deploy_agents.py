@@ -121,6 +121,8 @@ def main():
             bucket_name,
             {
                 "CT_MCP_SERVER_URL": ct_mcp_url,
+                "PROJECT_NUMBER": project_number,
+                "GOOGLE_CLOUD_LOCATION": location,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
             ["a2a_agents"]
@@ -143,6 +145,8 @@ def main():
             bucket_name,
             {
                 "WEA_MCP_SERVER_URL": wea_mcp_url,
+                "PROJECT_NUMBER": project_number,
+                "GOOGLE_CLOUD_LOCATION": location,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
             ["a2a_agents"]
@@ -153,8 +157,9 @@ def main():
         sys.exit(1)
 
     # Build URL endpoints for the agents based on their resource name
-    ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}:query"
-    wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}:query"
+    # Use A2A endpoints for LangGraph agents (not :query)
+    ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
+    wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}/a2a"
 
     # Deploy Hosting Agent
     try:
@@ -170,6 +175,8 @@ def main():
             {
                 "WEA_AGENT_URL": wea_agent_url,
                 "CT_AGENT_URL": ct_agent_url,
+                "PROJECT_NUMBER": project_number,
+                "GOOGLE_CLOUD_LOCATION": location,
                 "GOOGLE_GENAI_MODEL": google_genai_model
             },
             ["a2a_agents"]

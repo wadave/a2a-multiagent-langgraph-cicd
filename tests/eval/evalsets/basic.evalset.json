@@ -16,7 +16,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -34,7 +34,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -57,7 +57,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -80,7 +80,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -103,7 +103,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -126,7 +126,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -149,7 +149,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -172,7 +172,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -188,14 +188,14 @@
             "tool_uses": [
               {
                 "name": "send_message",
-                "args": {"agent_name": "Weather Agent lg - LangGraph", "message": "What's the forecast for New York?"}
+                "args": {"agent_name": "Weather Agent adk-memory - ADK", "message": "What's the forecast for New York?"}
               }
             ]
           }
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -211,14 +211,14 @@
             "tool_uses": [
               {
                 "name": "send_message",
-                "args": {"agent_name": "Cocktail Agent lg - LangGraph", "message": "What cocktails can I make with rum?"}
+                "args": {"agent_name": "Cocktail Agent adk-memory - ADK", "message": "What cocktails can I make with rum?"}
               }
             ]
           }
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -241,7 +241,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }
@@ -259,7 +259,7 @@
         }
       ],
       "session_input": {
-        "app_name": "a2a-multiagent-langgraph",
+        "app_name": "a2a-multiagent-adk-memory",
         "user_id": "eval_user",
         "state": {}
       }

@@ -40,3 +40,8 @@ variable "agent_engine_id" {
   type        = string
   default     = "unset"
 }
+
+variable "project_number" {
+  description = "GCP project number"
+  type        = string
+}

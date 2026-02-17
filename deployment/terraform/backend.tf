@@ -1,6 +1,7 @@
 terraform {
   backend "gcs" {
-    bucket = "dw-genai-prod-terraform-state"
-    prefix = "a2a-multiagent-langgraph-cicd/prod"
+    # bucket and prefix are configured via -backend-config in CI/CD
+    # For local development, override with:
+    #   terraform init -backend-config="bucket=YOUR_PROJECT_ID-terraform-state" -backend-config="prefix=a2a-multiagent-langgraph-cicd/dev"
   }
 }
