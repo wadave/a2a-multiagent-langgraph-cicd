@@ -99,9 +99,32 @@ Are there any weather alerts for Texas?
 4. [Terraform](https://developer.hashicorp.com/terraform/downloads)
 5. [GitHub CLI (gh)](https://cli.github.com/)
 
-### CI/CD Pipeline
+### Environment Variables for Local Testing
 
-This project uses **GitHub Actions** for CI/CD with **Terraform** for infrastructure management.
+Before running locally, set up the following environment variables:
+
+```bash
+# Required: Google Cloud Configuration
+export PROJECT_ID=YOUR_PROJECT_ID
+export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
+export GOOGLE_CLOUD_REGION=us-central1
+
+# Required: MCP Server URLs (after MCP servers are deployed)
+export CT_MCP_SERVER_URL=https://cocktail-remote-mcp-server-lg-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
+export WEA_MCP_SERVER_URL=https://weather-remote-mcp-server-lg-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
+
+# Required: Python path for agent deployment
+export PYTHONPATH=src
+```
+
+**How to find your values:**
+- `PROJECT_ID`: Your Google Cloud project ID (e.g., `my-project`)
+- `PROJECT_NUMBER`: Run `gcloud projects describe $PROJECT_ID --format="value(projectNumber)"`
+- `GOOGLE_CLOUD_REGION`: The region where you deploy services (e.g., `us-central1`)
+
+### CI/CD Setup
+
+This project uses **GitHub Actions** for CI/CD with **Terraform** for infrastructure management and **Google Cloud Build** for container builds.
 
 The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
 - `staging` branch — deploys to the staging project
@@ -110,26 +133,25 @@ The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
 **Pipeline steps** (each runs only when its source files change):
 
 1. **Detect Changes** — uses `dorny/paths-filter` to identify which components changed
-2. **Deploy MCP Servers** — builds and deploys Cocktail/Weather MCP servers to Cloud Run
+2. **Deploy MCP Servers** — builds and deploys Cocktail/Weather MCP servers to Cloud Run via Cloud Build
 3. **Deploy Agents** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine
-4. **Deploy Frontend** — builds and deploys the Gradio frontend to Cloud Run
+4. **Deploy Frontend** — builds and deploys the Gradio frontend to Cloud Run via Cloud Build
 5. **Apply Terraform** — updates Cloud Run service configuration and infrastructure
 
-#### Initial CI/CD Setup
+#### Option 1: Automated CI/CD Setup (Recommended)
 
-1. Authenticate with Google Cloud and GitHub:
+Use the `agent-starter-pack` CLI tool to automatically configure GitHub Actions with Cloud Build:
+
+1. **Authenticate with Google Cloud and GitHub:**
     ```bash
     gcloud auth login
     gcloud auth application-default login
     gh auth login
     ```
 
-2. Run the CI/CD setup:
+2. **Install the agent-starter-pack:**
     ```bash
-    uv venv && source .venv/bin/activate
-    uv pip install agent-starter-pack --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
-
-    agent-starter-pack setup-cicd \
+    uvx agent-starter-pack setup-cicd \
       --dev-project YOUR_DEV_PROJECT_ID \
       --staging-project YOUR_STAGING_PROJECT_ID \
       --prod-project YOUR_PROD_PROJECT_ID \
@@ -138,9 +160,133 @@ The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
       --cicd-runner github_actions
     ```
 
+    This command will:
+    - Enable required Google Cloud APIs
+    - Create Workload Identity Federation for GitHub Actions
+    - Set up GitHub repository secrets
+    - Configure Cloud Build triggers
+    - Grant necessary IAM permissions
+
+3. **Verify the setup:**
+    - Check GitHub repository settings → Secrets and variables → Actions
+    - Verify the following secrets are configured:
+      - `GCP_PROJECT_ID_STAGING`
+      - `GCP_PROJECT_NUMBER_STAGING`
+      - `GCP_PROJECT_ID_PROD`
+      - `GCP_PROJECT_NUMBER_PROD`
+      - `WORKLOAD_IDENTITY_PROVIDER`
+      - `SERVICE_ACCOUNT_EMAIL`
+
+#### Option 2: Manual CI/CD Setup
+
+If you prefer to set up CI/CD manually or need more control:
+
+1. **Enable Required APIs:**
+    ```bash
+    gcloud services enable \
+      cloudbuild.googleapis.com \
+      run.googleapis.com \
+      aiplatform.googleapis.com \
+      artifactregistry.googleapis.com \
+      iam.googleapis.com \
+      iamcredentials.googleapis.com \
+      --project YOUR_PROJECT_ID
+    ```
+
+2. **Create a Service Account for GitHub Actions:**
+    ```bash
+    export PROJECT_ID=YOUR_PROJECT_ID
+    export SERVICE_ACCOUNT_NAME=github-actions-sa
+
+    gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
+      --display-name="GitHub Actions Service Account" \
+      --project=$PROJECT_ID
+    ```
+
+3. **Grant Required Permissions:**
+    ```bash
+    export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
+    export SA_EMAIL=${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
+
+    # Grant Cloud Build, Cloud Run, and Vertex AI permissions
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:${SA_EMAIL}" \
+      --role="roles/cloudbuild.builds.builder"
+
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:${SA_EMAIL}" \
+      --role="roles/run.admin"
+
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:${SA_EMAIL}" \
+      --role="roles/aiplatform.admin"
+
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:${SA_EMAIL}" \
+      --role="roles/iam.serviceAccountUser"
+    ```
+
+4. **Set up Workload Identity Federation:**
+    ```bash
+    export REPO_OWNER=YOUR_GITHUB_USERNAME
+    export REPO_NAME=YOUR_REPO_NAME
+
+    # Create Workload Identity Pool
+    gcloud iam workload-identity-pools create "github-pool" \
+      --location="global" \
+      --project=$PROJECT_ID
+
+    # Create Workload Identity Provider
+    gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+      --location="global" \
+      --workload-identity-pool="github-pool" \
+      --issuer-uri="https://token.actions.githubusercontent.com" \
+      --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
+      --project=$PROJECT_ID
+
+    # Allow GitHub Actions to impersonate the service account
+    export WORKLOAD_IDENTITY_POOL_ID=$(gcloud iam workload-identity-pools describe github-pool \
+      --location=global --project=$PROJECT_ID --format="value(name)")
+
+    gcloud iam service-accounts add-iam-policy-binding $SA_EMAIL \
+      --role="roles/iam.workloadIdentityUser" \
+      --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO_OWNER}/${REPO_NAME}" \
+      --project=$PROJECT_ID
+    ```
+
+5. **Configure GitHub Secrets:**
+
+    Go to your GitHub repository → Settings → Secrets and variables → Actions, and add:
+
+    ```bash
+    # For staging environment
+    GCP_PROJECT_ID_STAGING=your-staging-project-id
+    GCP_PROJECT_NUMBER_STAGING=your-staging-project-number
+
+    # For production environment
+    GCP_PROJECT_ID_PROD=your-prod-project-id
+    GCP_PROJECT_NUMBER_PROD=your-prod-project-number
+
+    # Workload Identity Federation
+    WORKLOAD_IDENTITY_PROVIDER=projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+    SERVICE_ACCOUNT_EMAIL=github-actions-sa@PROJECT_ID.iam.gserviceaccount.com
+    ```
+
+6. **Test the Setup:**
+    ```bash
+    # Push to staging branch to trigger deployment
+    git checkout staging
+    git push origin staging
+
+    # Monitor the GitHub Actions workflow
+    gh run watch
+    ```
+
 ### Manual Deployment / Local Development
 
-1. Authenticate and set up:
+For local development and testing without CI/CD:
+
+1. **Authenticate and configure:**
     ```bash
     gcloud auth login
     gcloud auth application-default login
@@ -148,30 +294,73 @@ The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
     uv sync
     ```
 
-2. Deploy MCP Servers:
-    ```bash
-    gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
-      --tag gcr.io/YOUR_PROJECT_ID/cocktail-remote-mcp-server-lg
-    gcloud builds submit ./src/mcp_servers/weather_mcp_server \
-      --tag gcr.io/YOUR_PROJECT_ID/weather-remote-mcp-server-lg
-    ```
-
-3. Deploy A2A Agents:
+2. **Set environment variables** (see "Environment Variables for Local Testing" above):
     ```bash
     export PROJECT_ID=YOUR_PROJECT_ID
     export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
     export GOOGLE_CLOUD_REGION=us-central1
-    export CT_MCP_SERVER_URL=https://cocktail-remote-mcp-server-lg-PROJECT_NUMBER.REGION.run.app/mcp/
-    export WEA_MCP_SERVER_URL=https://weather-remote-mcp-server-lg-PROJECT_NUMBER.REGION.run.app/mcp/
     export PYTHONPATH=src
+    ```
 
+3. **Deploy MCP Servers to Cloud Run:**
+    ```bash
+    # Build and deploy Cocktail MCP Server
+    gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
+      --tag gcr.io/${PROJECT_ID}/cocktail-remote-mcp-server-lg
+
+    gcloud run deploy cocktail-remote-mcp-server-lg \
+      --image gcr.io/${PROJECT_ID}/cocktail-remote-mcp-server-lg \
+      --platform managed \
+      --region ${GOOGLE_CLOUD_REGION} \
+      --allow-unauthenticated
+
+    # Build and deploy Weather MCP Server
+    gcloud builds submit ./src/mcp_servers/weather_mcp_server \
+      --tag gcr.io/${PROJECT_ID}/weather-remote-mcp-server-lg
+
+    gcloud run deploy weather-remote-mcp-server-lg \
+      --image gcr.io/${PROJECT_ID}/weather-remote-mcp-server-lg \
+      --platform managed \
+      --region ${GOOGLE_CLOUD_REGION} \
+      --allow-unauthenticated
+    ```
+
+4. **Update MCP Server URLs:**
+    ```bash
+    # Get the deployed URLs
+    export CT_MCP_SERVER_URL=$(gcloud run services describe cocktail-remote-mcp-server-lg \
+      --region ${GOOGLE_CLOUD_REGION} --format="value(status.url)")/mcp/
+
+    export WEA_MCP_SERVER_URL=$(gcloud run services describe weather-remote-mcp-server-lg \
+      --region ${GOOGLE_CLOUD_REGION} --format="value(status.url)")/mcp/
+
+    echo "CT_MCP_SERVER_URL: $CT_MCP_SERVER_URL"
+    echo "WEA_MCP_SERVER_URL: $WEA_MCP_SERVER_URL"
+    ```
+
+5. **Deploy A2A Agents to Vertex AI Agent Engine:**
+    ```bash
     python deployment/deploy_agents.py
     ```
 
-4. Deploy Frontend:
+6. **Deploy Frontend to Cloud Run:**
     ```bash
     gcloud builds submit ./src/frontend \
-      --tag gcr.io/YOUR_PROJECT_ID/a2a-frontend-lg
+      --tag gcr.io/${PROJECT_ID}/a2a-frontend-lg
+
+    gcloud run deploy a2a-frontend-lg \
+      --image gcr.io/${PROJECT_ID}/a2a-frontend-lg \
+      --platform managed \
+      --region ${GOOGLE_CLOUD_REGION} \
+      --allow-unauthenticated
+    ```
+
+7. **Access the application:**
+    ```bash
+    # Get the frontend URL
+    gcloud run services describe a2a-frontend-lg \
+      --region ${GOOGLE_CLOUD_REGION} \
+      --format="value(status.url)"
     ```
 
 ## Testing
