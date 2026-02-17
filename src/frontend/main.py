@@ -67,7 +67,13 @@ client = vertexai.Client(
 )
 
 
-remote_a2a_agent_resource_name = f"projects/{PROJECT_NUMBER}/locations/us-central1/reasoningEngines/{AGENT_ENGINE_ID}"
+# AGENT_ENGINE_ID is now the full resource name (projects/.../reasoningEngines/...)
+# If it starts with "projects/", use it directly; otherwise construct it (backwards compatibility)
+if AGENT_ENGINE_ID and AGENT_ENGINE_ID.startswith("projects/"):
+    remote_a2a_agent_resource_name = AGENT_ENGINE_ID
+else:
+    # Fallback for old-style ID-only format
+    remote_a2a_agent_resource_name = f"projects/{PROJECT_NUMBER}/locations/us-central1/reasoningEngines/{AGENT_ENGINE_ID}"
 
 
 class GoogleAuth(httpx.Auth):
