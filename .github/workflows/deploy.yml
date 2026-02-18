@@ -12,11 +12,6 @@ on:
         required: false
         type: boolean
         default: false
-      redeploy_agents_for_mcp:
-        description: 'Redeploy agents when MCP servers change (cascade deployment)'
-        required: false
-        type: boolean
-        default: false
 
 env:
   REGION: us-central1
@@ -115,13 +110,13 @@ jobs:
             --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
-      # 3. Deploy A2A Agents (only if code changed)
+      # 3. Deploy A2A Agents (when agent code changes OR when MCP servers change)
       - name: Set up Python
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -129,9 +124,9 @@ jobs:
       - name: Install dependencies
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
@@ -140,9 +135,9 @@ jobs:
       - name: Run A2A Deploy Script
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -212,17 +207,25 @@ jobs:
             -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
 
-      # Force Cloud Run to pull new :latest image when frontend is rebuilt
-      - name: Force Frontend Update
-        if: steps.changes.outputs.frontend == 'true'
+      # Force Cloud Run to pull new :latest images when rebuilt
+      - name: Force Cocktail MCP Server Update
+        if: steps.changes.outputs.cocktail_mcp == 'true'
         run: |
-          echo "Forcing Cloud Run to pull new frontend image..."
-          gcloud run services update a2a-frontend-lg \
+          echo "Forcing Cloud Run to pull new cocktail MCP server image..."
+          gcloud run services update cocktail-remote-mcp-server-lg \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
-            --image=gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest
+            --image=gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg:latest
 
-      # Force Cloud Run to pull new :latest image when frontend is rebuilt
+      - name: Force Weather MCP Server Update
+        if: steps.changes.outputs.weather_mcp == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new weather MCP server image..."
+          gcloud run services update weather-remote-mcp-server-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg:latest
+
       - name: Force Frontend Update
         if: steps.changes.outputs.frontend == 'true'
         run: |
@@ -323,13 +326,13 @@ jobs:
             --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
             --project ${{ env.PROJECT_ID }}
 
-      # 3. Deploy A2A Agents (only if code changed)
+      # 3. Deploy A2A Agents (when agent code changes OR when MCP servers change)
       - name: Set up Python
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -337,9 +340,9 @@ jobs:
       - name: Install dependencies
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
@@ -348,9 +351,9 @@ jobs:
       - name: Run A2A Deploy Script
         if: |
           steps.changes.outputs.agents == 'true' ||
-          github.event.inputs.force_deploy_all == 'true' ||
-          (github.event.inputs.redeploy_agents_for_mcp == 'true' &&
-           (steps.changes.outputs.cocktail_mcp == 'true' || steps.changes.outputs.weather_mcp == 'true'))
+          steps.changes.outputs.cocktail_mcp == 'true' ||
+          steps.changes.outputs.weather_mcp == 'true' ||
+          github.event.inputs.force_deploy_all == 'true'
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
@@ -420,7 +423,25 @@ jobs:
             -var="agent_engine_id=${AGENT_ID}"
         working-directory: deployment/terraform
 
-      # Force Cloud Run to pull new :latest image when frontend is rebuilt
+      # Force Cloud Run to pull new :latest images when rebuilt
+      - name: Force Cocktail MCP Server Update
+        if: steps.changes.outputs.cocktail_mcp == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new cocktail MCP server image..."
+          gcloud run services update cocktail-remote-mcp-server-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg:latest
+
+      - name: Force Weather MCP Server Update
+        if: steps.changes.outputs.weather_mcp == 'true'
+        run: |
+          echo "Forcing Cloud Run to pull new weather MCP server image..."
+          gcloud run services update weather-remote-mcp-server-lg \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --image=gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg:latest
+
       - name: Force Frontend Update
         if: steps.changes.outputs.frontend == 'true'
         run: |
