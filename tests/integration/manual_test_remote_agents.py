@@ -14,8 +14,12 @@ location = os.environ.get("GOOGLE_CLOUD_REGION") or "us-central1"
 # WEATHER_AGENT_ID = "8434488936599912448"
 
 # LangGraph agents (current):
-COCKTAIL_AGENT_ID = "186286956559204352"  # Cocktail Agent lg - LangGraph
-WEATHER_AGENT_ID = "1848115219058917376"  # Weather Agent lg - LangGraph
+# LangGraph agents (current):
+COCKTAIL_AGENT_ID = os.environ.get("COCKTAIL_AGENT_ID")
+WEATHER_AGENT_ID = os.environ.get("WEATHER_AGENT_ID")
+
+if not COCKTAIL_AGENT_ID or not WEATHER_AGENT_ID:
+    raise ValueError("COCKTAIL_AGENT_ID and WEATHER_AGENT_ID environment variables are required")
 
 vertexai.init(project=project_id, location=location)
 
@@ -31,7 +35,9 @@ def test_remote_agent(agent_id, agent_name, query):
     print(f"\n--- Testing {agent_name} ({agent_id}) ---")
     try:
         # Get project number for resource name
-        project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
+        project_number = os.environ.get("PROJECT_NUMBER")
+        if not project_number:
+            raise ValueError("PROJECT_NUMBER environment variable is required")
         agent_resource_name = f"projects/{project_number}/locations/{location}/reasoningEngines/{agent_id}"
 
         agent = client.agent_engines.get(name=agent_resource_name)

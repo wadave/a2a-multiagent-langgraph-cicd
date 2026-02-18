@@ -63,7 +63,9 @@ async def test_remote_hosting_agent():
     project_id = os.environ.get("PROJECT_ID", "dw-genai-dev")
     location = os.environ.get("GOOGLE_CLOUD_REGION", "us-central1")
     project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
-    hosting_agent_id = os.environ.get("AGENT_ENGINE_ID", "4971924510593777664")  # Hosting Agent lg (fixed agent name matching, deployed 2026-02-17)
+    hosting_agent_id = os.environ.get("AGENT_ENGINE_ID")
+    if not hosting_agent_id:
+        raise ValueError("AGENT_ENGINE_ID environment variable is required")
 
     # Initialize Vertex AI
     vertexai.init(project=project_id, location=location)

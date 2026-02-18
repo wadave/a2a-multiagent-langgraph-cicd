@@ -9,9 +9,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT", "dw-genai-dev")
-project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
+project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("PROJECT_ID")
+project_number = os.environ.get("PROJECT_NUMBER")
 location = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+if not project_id or not project_number:
+    raise ValueError("GOOGLE_CLOUD_PROJECT and PROJECT_NUMBER must be set")
 
 print(f"Project: {project_id} ({project_number})")
 print(f"Location: {location}\n")
@@ -26,11 +29,18 @@ client = vertexai.Client(
     ),
 )
 
+# Define via environment variables or CLI since these change often
+HOSTING_AGENT_IDS = os.environ.get("HOSTING_AGENT_IDS", "").split(",")
+
+# Fallback strictly for local debugging if desired, but ideally environment driven
 agents_to_test = [
-    ("9013342226205376512", "Hosting Agent GE2 Staging"),
-    ("5018649356727746560", "Hosting Agent lg - LangGraph"),
-    ("247367026505416704", "Hosting Agent adk-mb - ADK"),
+    (agent_id.strip(), f"Agent {agent_id.strip()}")
+    for agent_id in HOSTING_AGENT_IDS
+    if agent_id.strip()
 ]
+
+if not agents_to_test:
+    print("Warning: No agents configured to test. Set HOSTING_AGENT_IDS environment variable.")
 
 async def test_agent(agent_id, agent_name):
     print(f"\n{'='*60}")

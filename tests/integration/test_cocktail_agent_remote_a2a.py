@@ -64,7 +64,9 @@ async def test_remote_cocktail_agent():
     project_id = os.environ.get("PROJECT_ID", "dw-genai-dev")
     location = os.environ.get("GOOGLE_CLOUD_REGION", "us-central1")
     project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
-    cocktail_agent_id = "271714611990888448"
+    cocktail_agent_id = os.environ.get("COCKTAIL_AGENT_ID")
+    if not cocktail_agent_id:
+        raise ValueError("COCKTAIL_AGENT_ID environment variable is required")
 
     # Initialize Vertex AI
     vertexai.init(project=project_id, location=location)
