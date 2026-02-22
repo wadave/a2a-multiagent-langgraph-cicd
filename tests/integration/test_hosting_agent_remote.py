@@ -112,7 +112,7 @@ async def test_remote_hosting_agent():
     a2a_client = factory.create(agent_card)
 
     # Test query
-    query = "What are the ingredients for a Margarita?"
+    query = "weather in la,ca"
     print(f"Sending query: {query}")
 
     message = Message(

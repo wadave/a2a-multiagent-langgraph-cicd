@@ -113,7 +113,10 @@ class GoogleAuth(httpx.Auth):
 async def get_agent_card(resource_name: str):
     """Fetches the agent card from Vertex AI."""
     config = {
-        "http_options": {"base_url": f"https://{LOCATION}-aiplatform.googleapis.com"}
+        "http_options": {
+            "base_url": f"https://{LOCATION}-aiplatform.googleapis.com",
+            "api_version": "v1beta1",
+        }
     }
 
     remote_a2a_agent = client.agent_engines.get(
@@ -282,9 +285,7 @@ async def main():
                 height=100,
                 scale=0,
                 show_label=False,
-                show_download_button=False,
                 container=False,
-                show_fullscreen_button=False,
                 elem_classes=["centered-image"],  # Requires custom CSS
             )
 

@@ -50,3 +50,56 @@ variable "project_number" {
   description = "GCP project number"
   type        = string
 }
+
+variable "oauth_client_id_secret_name" {
+  description = "Secret Manager secret name containing OAuth client credentials"
+  type        = string
+  default     = ""
+}
+
+variable "ge_app_staging" {
+  description = "Gemini Enterprise App ID for staging"
+  type        = string
+  default     = ""
+}
+
+variable "ge_app_prod" {
+  description = "Gemini Enterprise App ID for production"
+  type        = string
+  default     = ""
+}
+
+variable "cicd_sa_deployment_required_roles" {
+  description = "List of roles to assign to the CICD runner service account for the Staging and Prod projects."
+  type        = list(string)
+  default = [
+    "roles/iam.serviceAccountUser",
+    "roles/aiplatform.user",
+    "roles/discoveryengine.editor",
+    "roles/storage.admin",
+    "roles/secretmanager.secretAccessor",
+    "roles/secretmanager.viewer",
+    "roles/serviceusage.serviceUsageAdmin",
+    "roles/serviceusage.serviceUsageConsumer",
+    "roles/resourcemanager.projectIamAdmin"
+  ]
+}
+
+variable "agents_region" {
+  description = "Region for Gemini Enterprise agents"
+  type        = string
+  default     = "us-central1"
+}
+
+locals {
+  deploy_project_ids = {
+    staging = var.staging_project_id
+    prod    = var.prod_project_id
+  }
+}
+
+variable "auth_id" {
+  description = "The ID of the Gemini Enterprise authorization account"
+  type        = string
+  default     = "a2a_langgraph_oauth_token_v4"
+}

@@ -4,7 +4,6 @@
 >
 > **Important**: A2A is a work in progress (WIP) — future changes may differ from what is demonstrated here.
 
-> **Important**: Please run it in **Cloud Shell** to ensure you have the proper permissions.
 
 This project demonstrates a multi-agent system using Agent2Agent (A2A), LangGraph, Vertex AI Agent Engine, MCP servers, and a CI/CD pipeline powered by GitHub Actions and Terraform.
 
@@ -98,6 +97,8 @@ Are there any weather alerts for Texas?
 3. [uv](https://docs.astral.sh/uv/getting-started/installation/)
 4. [Terraform](https://developer.hashicorp.com/terraform/downloads)
 5. [GitHub CLI (gh)](https://cli.github.com/)
+6. Create a Gemini Enterprise App and get the App ID.
+7. Create OAuth credentials and save them in Google Cloud Secret Manager as "client_secret".
 
 ### Environment Variables for Local Testing
 

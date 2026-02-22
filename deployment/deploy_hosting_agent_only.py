@@ -40,9 +40,9 @@ def main():
         http_options={"api_version": "v1beta1"},
     )
 
-    # Use the already-deployed cocktail and weather agents
-    ct_agent_name = f"projects/{project_number}/locations/{location}/reasoningEngines/2922892233256468480"
-    wea_agent_name = f"projects/{project_number}/locations/{location}/reasoningEngines/3747050965065269248"
+    # Use the already-deployed cocktail and weather agents from environment variables
+    ct_agent_name = os.environ.get("CT_AGENT_NAME", f"projects/{project_number}/locations/{location}/reasoningEngines/2922892233256468480")
+    wea_agent_name = os.environ.get("WEA_AGENT_NAME", f"projects/{project_number}/locations/{location}/reasoningEngines/3747050965065269248")
 
     # Build A2A URL endpoints
     ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
