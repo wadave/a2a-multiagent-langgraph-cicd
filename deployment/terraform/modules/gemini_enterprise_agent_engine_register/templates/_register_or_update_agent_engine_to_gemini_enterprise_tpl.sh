@@ -81,13 +81,16 @@ if [ -z "$${agent_engine_resource_name}" ] || [ "$${agent_engine_resource_name}"
   exit 1
 fi
 
+agent_engine_id_only=$(basename "$${agent_engine_resource_name}")
+
+
 if [ $${#authorization_ids_set[@]} -eq 0 ]; then
   REQUEST_BODY=$(cat <<EOF
 {
   "displayName": "$${gemini_enterprise_agent_name}",
   "description": "$${agent_description}",
   "a2aAgentDefinition": {
-    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/$${agent_engine_resource_name}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
+    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/projects/$${gcp_project}/locations/$${agent_engine_location}/reasoningEngines/$${agent_engine_id_only}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
   }
 }
 EOF
@@ -98,7 +101,7 @@ else
   "displayName": "$${gemini_enterprise_agent_name}",
   "description": "$${agent_description}",
   "a2aAgentDefinition": {
-    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/$${agent_engine_resource_name}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
+    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/projects/$${gcp_project}/locations/$${agent_engine_location}/reasoningEngines/$${agent_engine_id_only}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
   },
   "authorization_config": {
     "agent_authorization": $${joined_authorization_names_string}
