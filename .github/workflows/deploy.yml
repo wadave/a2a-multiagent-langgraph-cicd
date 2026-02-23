@@ -198,14 +198,17 @@ jobs:
           fi
 
           terraform apply -auto-approve \
-            -var-file="test.tfvars" \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
-            -var="agent_engine_id=${AGENT_ID}"
+            -var="agent_engine_id=${AGENT_ID}" \
+            -var="oauth_client_id_secret_name=client_secret" \
+            -var="auth_id=a2a_langgraph_oauth_token_client_v2" \
+            -var="ge_app_staging=enterprise-search-17489269_1748926990192" \
+            -var="agents_region=global"
         working-directory: deployment/terraform
 
       # Force Cloud Run to pull new :latest images when rebuilt
@@ -415,14 +418,17 @@ jobs:
           fi
 
           terraform apply -auto-approve \
-            -var-file="test.tfvars" \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
             -var="repository_owner=wadave" \
-            -var="agent_engine_id=${AGENT_ID}"
+            -var="agent_engine_id=${AGENT_ID}" \
+            -var="oauth_client_id_secret_name=client_secret" \
+            -var="auth_id=a2a_langgraph_oauth_token_client_v2" \
+            -var="ge_app_staging=enterprise-search-17489269_1748926990192" \
+            -var="agents_region=global"
         working-directory: deployment/terraform
 
       # Force Cloud Run to pull new :latest images when rebuilt
