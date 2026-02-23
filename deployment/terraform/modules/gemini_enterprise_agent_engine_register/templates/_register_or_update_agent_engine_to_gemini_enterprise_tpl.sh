@@ -83,6 +83,43 @@ fi
 
 agent_engine_id_only=$(basename "$${agent_engine_resource_name}")
 
+# Fetch live agent card from the reasoning engine
+echo -n "Fetching agent card from reasoning engine \"$${agent_engine_resource_name}\": "
+agent_card_json=$(curl -s -X GET \
+    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+    -H "content-type: application/json" \
+    "https://${agent_engine_location}-aiplatform.googleapis.com/v1beta1/${agent_engine_id}/a2a/v1/card")
+
+agent_card_error=$(echo "$${agent_card_json}" | jq -r '.error // empty')
+if [[ -n "$${agent_card_error}" ]]; then
+  echo "Failure"
+  echo "Failed to fetch agent card: '$${agent_card_json}'"
+  exit 1
+fi
+echo "Success"
+
+# Compact + JSON-escape the card for embedding as a string value in the request body
+agent_card_escaped=$(echo "$${agent_card_json}" | jq -c '.' | python3 -c "import sys, json; print(json.dumps(sys.stdin.read().strip()))")
+
+# Release auth from any OTHER agent that currently holds it.
+# Prevents FAILED_PRECONDITION when a previous agent was deleted without releasing its auth.
+if [ $${#authorization_ids_set[@]} -ne 0 ]; then
+  for authorization_id in "$${authorization_ids_set[@]}"; do
+    auth_full_name="projects/$${gcp_project_number}/locations/$${gemini_enterprise_location}/authorizations/$${authorization_id}"
+    other_agent=$(echo "$${all_assistants_output}" | jq -r ".agents[]? | select(.authorizationConfig.agentAuthorization == \"$${auth_full_name}\" and .displayName != \"$${gemini_enterprise_agent_name}\") | .name")
+    if [[ -n "$${other_agent}" ]]; then
+      echo -n "Releasing auth from stale agent \"$(basename $${other_agent})\": "
+      release=$(curl -s -X PATCH \
+          -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+          -H "x-goog-user-project: $(gcloud config get-value project 2>&1 | grep -v 'active config')" \
+          -H "content-type: application/json" \
+          "https://$${api_endpoint}/v1alpha/$${other_agent}" \
+          -d '{"authorization_config": null}')
+      release_error=$(echo "$${release}" | jq '.error')
+      [[ "$${release_error}" == "null" ]] && echo "Success" || echo "Warning (non-fatal): $${release}"
+    fi
+  done
+fi
 
 if [ $${#authorization_ids_set[@]} -eq 0 ]; then
   REQUEST_BODY=$(cat <<EOF
@@ -90,7 +127,7 @@ if [ $${#authorization_ids_set[@]} -eq 0 ]; then
   "displayName": "$${gemini_enterprise_agent_name}",
   "description": "$${agent_description}",
   "a2aAgentDefinition": {
-    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/projects/$${gcp_project}/locations/$${agent_engine_location}/reasoningEngines/$${agent_engine_id_only}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
+    "jsonAgentCard": $${agent_card_escaped}
   }
 }
 EOF
@@ -101,7 +138,7 @@ else
   "displayName": "$${gemini_enterprise_agent_name}",
   "description": "$${agent_description}",
   "a2aAgentDefinition": {
-    "jsonAgentCard": "{ \"protocolVersion\": \"0.3.0\", \"name\": \"$${gemini_enterprise_agent_name}\", \"description\": \"$${agent_description}\", \"url\": \"https://$${agent_engine_location}-aiplatform.googleapis.com/v1beta1/projects/$${gcp_project}/locations/$${agent_engine_location}/reasoningEngines/$${agent_engine_id_only}/a2a\", \"version\": \"1.0.0\", \"capabilities\": {}, \"skills\": [{ \"id\": \"question_answer\", \"name\": \"Q&A Agent\", \"description\": \"$${gemini_enterprise_tool_description}\", \"tags\": [\"Question-Answer\"] }], \"defaultInputModes\": [\"text\"], \"defaultOutputModes\": [\"text\"] }"
+    "jsonAgentCard": $${agent_card_escaped}
   },
   "authorization_config": {
     "agent_authorization": $${joined_authorization_names_string}

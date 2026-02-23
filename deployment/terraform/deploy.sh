@@ -107,6 +107,11 @@ COMMON_VARS=(
     -var="region=${REGION}"
 )
 
+if [ -f "test.tfvars" ]; then
+    COMMON_VARS+=("-var-file=test.tfvars")
+fi
+
+
 case "$ACTION" in
     plan)
         terraform plan "${COMMON_VARS[@]}"
