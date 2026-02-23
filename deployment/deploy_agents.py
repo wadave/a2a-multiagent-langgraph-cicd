@@ -53,7 +53,7 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
             "requirements": [
                 "a2a-sdk>=0.3.24",
                 "google-adk>=1.25.1",
-                "google-cloud-aiplatform>=1.130.0",
+                "google-cloud-aiplatform[agent_engines,adk]>=1.130.0",
                 "pydantic>=2.0.0",
                 "cloudpickle==3.1.1",
                 "langchain-google-genai>=2.0.10",

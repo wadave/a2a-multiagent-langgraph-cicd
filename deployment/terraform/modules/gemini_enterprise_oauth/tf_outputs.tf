@@ -63,12 +63,16 @@ resource "null_resource" "register_or_update_authorization_to_gemini_enterprise"
 # Deregister authorization to Gemini Enterprise
 resource "null_resource" "deregister_authorization_from_gemini_enterprise" {
   depends_on = [
-    local_file.out_deregister_authorization_from_gemini_enterprise
+    google_project_service.discovery_engine_api,
   ]
+
+  triggers = {
+    script_body = local.deregister_authorization_from_gemini_enterprise_tpl
+  }
 
   provisioner "local-exec" {
     when        = destroy
-    command     = "./${path.module}/build/_deregister_authorization_from_gemini_enterprise_tpl.sh"
+    command     = self.triggers.script_body
     interpreter = ["/bin/bash", "-c"]
   }
 }
