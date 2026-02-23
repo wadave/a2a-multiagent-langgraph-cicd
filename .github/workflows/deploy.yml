@@ -207,7 +207,7 @@ jobs:
             -var="repository_owner=wadave" \
             -var="agent_engine_id=${AGENT_ID}" \
             -var="oauth_client_id_secret_name=client_secret" \
-            -var="auth_id=a2a_langgraph_oauth_token_client_v2" \
+            -var="auth_id=a2a_langgraph_oauth_token_client_v3" \
             -var="ge_app_staging=enterprise-search-17489269_1748926990192" \
             -var="agents_region=global"
         working-directory: deployment/terraform
@@ -428,7 +428,7 @@ jobs:
             -var="repository_owner=wadave" \
             -var="agent_engine_id=${AGENT_ID}" \
             -var="oauth_client_id_secret_name=client_secret" \
-            -var="auth_id=a2a_langgraph_oauth_token_client_v2" \
+            -var="auth_id=a2a_langgraph_oauth_token_client_v3" \
             -var="ge_app_staging=enterprise-search-17489269_1748926990192" \
             -var="agents_region=global"
         working-directory: deployment/terraform
