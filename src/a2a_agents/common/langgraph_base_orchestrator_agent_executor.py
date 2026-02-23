@@ -268,11 +268,18 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
                 )
             elif final_response:
                 # Extract text response from the final message
-                response_text = (
-                    final_response
-                    if isinstance(final_response, str)
-                    else str(final_response)
-                )
+                if isinstance(final_response, str):
+                    response_text = final_response
+                elif isinstance(final_response, list):
+                    texts = []
+                    for part in final_response:
+                        if isinstance(part, str):
+                            texts.append(part)
+                        elif isinstance(part, dict) and "text" in part:
+                            texts.append(part["text"])
+                    response_text = "\n\n".join(texts) if texts else str(final_response)
+                else:
+                    response_text = str(final_response)
 
                 await updater.add_artifact(
                     [Part(root=TextPart(text=response_text))],

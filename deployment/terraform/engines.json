@@ -1,0 +1,2720 @@
+{
+  "reasoningEngines": [
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/2843050096893886464",
+      "displayName": "Hosting Agent GE Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "parameters": {
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "",
+            "description": "Deprecated. Use async_get_session instead.\n\nGet a session for the given user.\n",
+            "name": "get_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "",
+            "description": "Deprecated. Use async_list_sessions instead.\n\nList sessions for the given user.\n",
+            "name": "list_sessions"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "object",
+                  "nullable": true
+                },
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            },
+            "api_mode": "",
+            "description": "Deprecated. Use async_create_session instead.\n\nCreates a new session.\n",
+            "name": "create_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "",
+            "description": "Deprecated. Use async_delete_session instead.\n\nDeletes a session for the given user.\n",
+            "name": "delete_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "Get a session for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Required. The ID of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    Session: The session instance (if any). It returns None if the\n    session is not found.\n\nRaises:\n    RuntimeError: If the session is not found.\n",
+            "name": "async_get_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "List sessions for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    ListSessionsResponse: The list of sessions.\n",
+            "name": "async_list_sessions"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "object",
+                  "nullable": true
+                },
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "Creates a new session.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, an ID\n        will be be generated for the session.\n    state (dict[str, Any]):\n        Optional. The initial state of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    Session: The newly created session instance.\n",
+            "name": "async_create_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "Deletes a session for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Required. The ID of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n",
+            "name": "async_delete_session"
+          },
+          {
+            "parameters": {
+              "required": [
+                "session"
+              ],
+              "type": "object",
+              "properties": {
+                "session": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "Generates memories.\n\nArgs:\n    session (Dict[str, Any]):\n        Required. The session to use for generating memories. It should\n        be a dictionary representing an ADK Session object, e.g.\n        session.model_dump(mode=\"json\").\n",
+            "name": "async_add_session_to_memory"
+          },
+          {
+            "parameters": {
+              "required": [
+                "user_id",
+                "query"
+              ],
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string"
+                },
+                "user_id": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "async",
+            "description": "Searches memories for the given user.\n\nArgs:\n    user_id: The id of the user.\n    query: The query to match the memories on.\n\nReturns:\n    A SearchMemoryResponse containing the matching memories.\n",
+            "name": "async_search_memory"
+          },
+          {
+            "parameters": {
+              "required": [
+                "message",
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "run_config": {
+                  "type": "object",
+                  "nullable": true
+                },
+                "session_id": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            },
+            "api_mode": "stream",
+            "description": "Deprecated. Use async_stream_query instead.\n\nStreams responses from the ADK application in response to a message.\n\nArgs:\n    message (Union[str, Dict[str, Any]]):\n        Required. The message to stream responses for.\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, a new\n        session will be created for the user.\n    run_config (Optional[Dict[str, Any]]):\n        Optional. The run config to use for the query. If you want to\n        pass in a `run_config` pydantic object, you can pass in a dict\n        representing it as `run_config.model_dump(mode=\"json\")`.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        runner.\n\nYields:\n    The output of querying the ADK application.\n",
+            "name": "stream_query"
+          },
+          {
+            "parameters": {
+              "required": [
+                "message",
+                "user_id"
+              ],
+              "type": "object",
+              "properties": {
+                "session_events": {
+                  "type": "array",
+                  "nullable": true
+                },
+                "user_id": {
+                  "type": "string"
+                },
+                "run_config": {
+                  "type": "object",
+                  "nullable": true
+                },
+                "session_id": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            },
+            "api_mode": "async_stream",
+            "description": "Streams responses asynchronously from the ADK application.\n\nArgs:\n    message (str):\n        Required. The message to stream responses for.\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, a new\n        session will be created for the user. If this is specified, then\n        `session_events` will be ignored.\n    session_events (Optional[List[Dict[str, Any]]]):\n        Optional. The session events to use for the query. This will be\n        used to initialize the session if `session_id` is not provided.\n    run_config (Optional[Dict[str, Any]]):\n        Optional. The run config to use for the query. If you want to\n        pass in a `run_config` pydantic object, you can pass in a dict\n        representing it as `run_config.model_dump(mode=\"json\")`.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        runner.\n\nYields:\n    Event dictionaries asynchronously.\n\nRaises:\n    TypeError: If message is not a string or a dictionary representing\n    a Content object.\n    ValueError: If both session_id and session_events are specified.\n",
+            "name": "async_stream_query"
+          },
+          {
+            "parameters": {
+              "required": [
+                "request_json"
+              ],
+              "type": "object",
+              "properties": {
+                "request_json": {
+                  "type": "string"
+                }
+              }
+            },
+            "api_mode": "async_stream",
+            "description": "Streams responses asynchronously from the ADK application.\n\nIn general, you should use `async_stream_query` instead, as it has a\nmore structured API and works with the respective ADK services that\nyou have defined for the AdkApp. This method is primarily meant for\ninvocation from AgentSpace.\n\nArgs:\n    request_json (str):\n        Required. The request to stream responses for.\n",
+            "name": "streaming_agent_run_with_events"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/1065254143989383168/a2a"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/8788927504929783808/a2a"
+            },
+            {
+              "name": "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY",
+              "value": "true"
+            },
+            {
+              "name": "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT",
+              "value": "true"
+            }
+          ]
+        },
+        "agentFramework": "google-adk",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com"
+      },
+      "createTime": "2026-02-22T18:19:07.734173Z",
+      "updateTime": "2026-02-22T19:10:18.563970Z",
+      "description": "This agent orchestrates the decomposition of the user request into tasks that can be performed by the child agents."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/8788927504929783808",
+      "displayName": "Weather Agent GE Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "WEA_MCP_SERVER_URL",
+              "value": "https://weather-mcp-ge-staging-lxo6yz2aha-uc.a.run.app/mcp/"
+            },
+            {
+              "name": "WEATHER_REMOTE_MCP_SERVER_NAME",
+              "value": "weather-remote-mcp-server"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Weather Agent GE",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states",
+              "examples": [
+                "weather in LA, CA"
+              ],
+              "id": "weather_search",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search weather",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "weather"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-22T18:14:23.870920Z",
+      "updateTime": "2026-02-22T19:05:07.303365Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/1065254143989383168",
+      "displayName": "Cocktail Agent GE Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          },
+          {
+            "api_mode": "a2a_extension",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent GE\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card",
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "CT_MCP_SERVER_URL",
+              "value": "https://cocktail-mcp-ge-staging-lxo6yz2aha-uc.a.run.app/mcp/"
+            },
+            {
+              "name": "CT_REMOTE_MCP_SERVER_NAME",
+              "value": "cocktail-remote-mcp-server"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Cocktail Agent GE",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with cocktail information search",
+              "examples": [
+                "List a random cocktail",
+                "Find a cocktail with rum",
+                "What are the ingredients for a Margarita?"
+              ],
+              "id": "cocktail_cocktail",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search cocktail information",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "cocktail",
+                "drink",
+                "recipe",
+                "ingredients"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-22T17:59:17.953957Z",
+      "updateTime": "2026-02-22T19:00:28.796057Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/480252385361395712",
+      "displayName": "Hosting Agent GE2 Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deprecated. Use async_get_session instead.\n\nGet a session for the given user.\n",
+            "name": "get_session"
+          },
+          {
+            "api_mode": "",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deprecated. Use async_list_sessions instead.\n\nList sessions for the given user.\n",
+            "name": "list_sessions"
+          },
+          {
+            "api_mode": "",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "nullable": true,
+                  "type": "object"
+                },
+                "session_id": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deprecated. Use async_create_session instead.\n\nCreates a new session.\n",
+            "name": "create_session"
+          },
+          {
+            "api_mode": "",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deprecated. Use async_delete_session instead.\n\nDeletes a session for the given user.\n",
+            "name": "delete_session"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object"
+            },
+            "description": "Get a session for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Required. The ID of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    Session: The session instance (if any). It returns None if the\n    session is not found.\n\nRaises:\n    RuntimeError: If the session is not found.\n",
+            "name": "async_get_session"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "List sessions for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    ListSessionsResponse: The list of sessions.\n",
+            "name": "async_list_sessions"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "state": {
+                  "nullable": true,
+                  "type": "object"
+                },
+                "session_id": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "Creates a new session.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, an ID\n        will be be generated for the session.\n    state (dict[str, Any]):\n        Optional. The initial state of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n\nReturns:\n    Session: The newly created session instance.\n",
+            "name": "async_create_session"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "session_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deletes a session for the given user.\n\nArgs:\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Required. The ID of the session.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        session service.\n",
+            "name": "async_delete_session"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "session": {
+                  "additionalProperties": true,
+                  "type": "object"
+                }
+              },
+              "required": [
+                "session"
+              ],
+              "type": "object"
+            },
+            "description": "Generates memories.\n\nArgs:\n    session (Dict[str, Any]):\n        Required. The session to use for generating memories. It should\n        be a dictionary representing an ADK Session object, e.g.\n        session.model_dump(mode=\"json\").\n",
+            "name": "async_add_session_to_memory"
+          },
+          {
+            "api_mode": "async",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "query": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "user_id",
+                "query"
+              ],
+              "type": "object"
+            },
+            "description": "Searches memories for the given user.\n\nArgs:\n    user_id: The id of the user.\n    query: The query to match the memories on.\n\nReturns:\n    A SearchMemoryResponse containing the matching memories.\n",
+            "name": "async_search_memory"
+          },
+          {
+            "api_mode": "stream",
+            "parameters": {
+              "properties": {
+                "user_id": {
+                  "type": "string"
+                },
+                "run_config": {
+                  "nullable": true,
+                  "type": "object"
+                },
+                "message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    }
+                  ]
+                },
+                "session_id": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "Deprecated. Use async_stream_query instead.\n\nStreams responses from the ADK application in response to a message.\n\nArgs:\n    message (Union[str, Dict[str, Any]]):\n        Required. The message to stream responses for.\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, a new\n        session will be created for the user.\n    run_config (Optional[Dict[str, Any]]):\n        Optional. The run config to use for the query. If you want to\n        pass in a `run_config` pydantic object, you can pass in a dict\n        representing it as `run_config.model_dump(mode=\"json\")`.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        runner.\n\nYields:\n    The output of querying the ADK application.\n",
+            "name": "stream_query"
+          },
+          {
+            "api_mode": "async_stream",
+            "parameters": {
+              "properties": {
+                "session_events": {
+                  "nullable": true,
+                  "type": "array"
+                },
+                "user_id": {
+                  "type": "string"
+                },
+                "run_config": {
+                  "nullable": true,
+                  "type": "object"
+                },
+                "message": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    }
+                  ]
+                },
+                "session_id": {
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "user_id"
+              ],
+              "type": "object"
+            },
+            "description": "Streams responses asynchronously from the ADK application.\n\nArgs:\n    message (str):\n        Required. The message to stream responses for.\n    user_id (str):\n        Required. The ID of the user.\n    session_id (str):\n        Optional. The ID of the session. If not provided, a new\n        session will be created for the user. If this is specified, then\n        `session_events` will be ignored.\n    session_events (Optional[List[Dict[str, Any]]]):\n        Optional. The session events to use for the query. This will be\n        used to initialize the session if `session_id` is not provided.\n    run_config (Optional[Dict[str, Any]]):\n        Optional. The run config to use for the query. If you want to\n        pass in a `run_config` pydantic object, you can pass in a dict\n        representing it as `run_config.model_dump(mode=\"json\")`.\n    **kwargs (dict[str, Any]):\n        Optional. Additional keyword arguments to pass to the\n        runner.\n\nYields:\n    Event dictionaries asynchronously.\n\nRaises:\n    TypeError: If message is not a string or a dictionary representing\n    a Content object.\n    ValueError: If both session_id and session_events are specified.\n",
+            "name": "async_stream_query"
+          },
+          {
+            "api_mode": "async_stream",
+            "parameters": {
+              "properties": {
+                "request_json": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "request_json"
+              ],
+              "type": "object"
+            },
+            "description": "Streams responses asynchronously from the ADK application.\n\nIn general, you should use `async_stream_query` instead, as it has a\nmore structured API and works with the respective ADK services that\nyou have defined for the AdkApp. This method is primarily meant for\ninvocation from AgentSpace.\n\nArgs:\n    request_json (str):\n        Required. The request to stream responses for.\n",
+            "name": "streaming_agent_run_with_events"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/1935478014955487232/a2a"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/4488456053721137152/a2a"
+            },
+            {
+              "name": "GOOGLE_CLOUD_AGENT_ENGINE_ENABLE_TELEMETRY",
+              "value": "true"
+            },
+            {
+              "name": "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT",
+              "value": "true"
+            }
+          ]
+        },
+        "agentFramework": "google-adk",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com"
+      },
+      "createTime": "2026-02-18T04:50:16.983182Z",
+      "updateTime": "2026-02-22T17:48:24.272267Z",
+      "description": "This agent orchestrates the decomposition of the user request into tasks that can be performed by the child agents."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/4488456053721137152",
+      "displayName": "Weather Agent GE2 Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "WEA_MCP_SERVER_URL",
+              "value": "https://weather-mcp-ge-staging-lxo6yz2aha-uc.a.run.app/mcp/"
+            },
+            {
+              "name": "WEATHER_REMOTE_MCP_SERVER_NAME",
+              "value": "weather-remote-mcp-server"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Weather Agent - ADK",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states",
+              "examples": [
+                "weather in LA, CA"
+              ],
+              "id": "weather_search",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search weather",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "weather"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-18T04:45:54.165702Z",
+      "updateTime": "2026-02-22T17:44:10.720759Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/1935478014955487232",
+      "displayName": "Cocktail Agent GE2 Staging",
+      "spec": {
+        "serviceAccount": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object"
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "CT_MCP_SERVER_URL",
+              "value": "https://cocktail-mcp-ge-staging-lxo6yz2aha-uc.a.run.app/mcp/"
+            },
+            {
+              "name": "CT_REMOTE_MCP_SERVER_NAME",
+              "value": "cocktail-remote-mcp-server"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "a2a-multiagent-ge-cicd-app@dw-genai-dev.iam.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Cocktail Agent - ADK",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with cocktail information search",
+              "examples": [
+                "List a random cocktail",
+                "Find a cocktail with rum",
+                "What are the ingredients for a Margarita?"
+              ],
+              "id": "cocktail_cocktail",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search cocktail information",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "cocktail",
+                "drink",
+                "recipe",
+                "ingredients"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-18T04:41:11.523192Z",
+      "updateTime": "2026-02-22T17:40:28.924803Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/8549295542725771264",
+      "displayName": "specialist-a2a-backend",
+      "spec": {
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://a2a-ge-staging-agent-source-dw/reasoning_engine/reasoning_engine.pkl",
+          "requirementsGcsUri": "gs://a2a-ge-staging-agent-source-dw/reasoning_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "effectiveIdentity": "service-496235138247@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
+      },
+      "createTime": "2026-02-18T18:11:44.054726Z",
+      "updateTime": "2026-02-18T18:25:07.880759Z"
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/4586972295569866752",
+      "displayName": "Hosting Agent adk-mb - ADK",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_message_send"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_get_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_cancel_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/1105689783612473344/a2a"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/3443057990217760768/a2a"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Hosting Agent adk-mb - ADK",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states, and cocktails",
+              "examples": [
+                "weather in LA, CA",
+                "List a random cocktail",
+                "What is a margarita?"
+              ],
+              "id": "hosting_agent",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search hosting agent",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "host_agent"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-18T04:44:01.615320Z",
+      "updateTime": "2026-02-18T07:47:53.526726Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/1105689783612473344",
+      "displayName": "Weather Agent adk-mb - ADK",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_message_send"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_get_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_cancel_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_MCP_SERVER_URL",
+              "value": "https://weather-remote-mcp-server-adk-mb-lxo6yz2aha-uc.a.run.app/mcp/sse"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Weather Agent adk-mb - ADK",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states",
+              "examples": [
+                "weather in LA, CA"
+              ],
+              "id": "weather_search",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search weather",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "weather"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-18T04:39:17.893281Z",
+      "updateTime": "2026-02-18T07:44:24.901820Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/3443057990217760768",
+      "displayName": "Cocktail Agent adk-mb - ADK",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_message_send"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_get_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "on_cancel_task"
+          },
+          {
+            "description": null,
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "type": "object",
+              "properties": {}
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent adk-mb - ADK\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "CT_MCP_SERVER_URL",
+              "value": "https://cocktail-remote-mcp-server-adk-mb-lxo6yz2aha-uc.a.run.app/mcp/sse"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Cocktail Agent adk-mb - ADK",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with cocktail information search",
+              "examples": [
+                "List a random cocktail",
+                "Find a cocktail with rum",
+                "What are the ingredients for a Margarita?"
+              ],
+              "id": "cocktail_cocktail",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search cocktail information",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "cocktail",
+                "drink",
+                "recipe",
+                "ingredients"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-18T04:34:43.564173Z",
+      "updateTime": "2026-02-18T07:40:27.527693Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/7864466924388745216",
+      "displayName": "Hosting Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/3945209348669571072/a2a"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/3815730859382669312/a2a"
+            },
+            {
+              "name": "PROJECT_NUMBER",
+              "value": "496235138247"
+            },
+            {
+              "name": "GOOGLE_CLOUD_LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Hosting Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather and cocktail information search",
+              "examples": [
+                "weather in LA, CA",
+                "List a random cocktail",
+                "What is a margarita?"
+              ],
+              "id": "hosting_agent",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search hosting agent",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "host_agent"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T22:31:56.797217Z",
+      "updateTime": "2026-02-17T22:37:59.818832Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/3945209348669571072",
+      "displayName": "Weather Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_MCP_SERVER_URL",
+              "value": "https://weather-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/"
+            },
+            {
+              "name": "PROJECT_NUMBER",
+              "value": "496235138247"
+            },
+            {
+              "name": "GOOGLE_CLOUD_LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Weather Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states",
+              "examples": [
+                "weather in LA, CA"
+              ],
+              "id": "weather_search",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search weather",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "weather"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T22:25:47.565596Z",
+      "updateTime": "2026-02-17T22:31:45.201997Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/3815730859382669312",
+      "displayName": "Cocktail Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.12"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "description": null,
+            "parameters": {
+              "properties": {},
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "CT_MCP_SERVER_URL",
+              "value": "https://cocktail-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/"
+            },
+            {
+              "name": "PROJECT_NUMBER",
+              "value": "496235138247"
+            },
+            {
+              "name": "GOOGLE_CLOUD_LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Cocktail Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with cocktail information search",
+              "examples": [
+                "List a random cocktail",
+                "Find a cocktail with rum",
+                "What are the ingredients for a Margarita?"
+              ],
+              "id": "cocktail_cocktail",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search cocktail information",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "cocktail",
+                "drink",
+                "recipe",
+                "ingredients"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T22:18:37.023457Z",
+      "updateTime": "2026-02-17T22:25:36.378968Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/4971924510593777664",
+      "displayName": "Hosting Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {}
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {}
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {}
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {}
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather and cocktail information search\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/3747050965065269248/a2a"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/2922892233256468480/a2a"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Hosting Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather and cocktail information search",
+              "examples": [
+                "weather in LA, CA",
+                "List a random cocktail",
+                "What is a margarita?"
+              ],
+              "id": "hosting_agent",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search hosting agent",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "host_agent"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T18:57:54.366773Z",
+      "updateTime": "2026-02-17T19:02:52.688524Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/3747050965065269248",
+      "displayName": "Weather Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Weather Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states\",\"examples\":[\"weather in LA, CA\"],\"id\":\"weather_search\",\"inputModes\":[\"text/plain\"],\"name\":\"Search weather\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"weather\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "WEA_MCP_SERVER_URL",
+              "value": "https://weather-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Weather Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with weather in city, or states",
+              "examples": [
+                "weather in LA, CA"
+              ],
+              "id": "weather_search",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search weather",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "weather"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T18:28:19.581630Z",
+      "updateTime": "2026-02-17T18:34:43.925686Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/2922892233256468480",
+      "displayName": "Cocktail Agent lg",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_message_send"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_get_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "on_cancel_task"
+          },
+          {
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "type": "object",
+              "properties": {},
+              "required": [
+                "request",
+                "context"
+              ]
+            },
+            "description": null,
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text/plain\"],\"defaultOutputModes\":[\"application/json\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Cocktail Agent lg\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":null,\"securitySchemes\":null,\"signatures\":null,\"skills\":[{\"description\":\"Helps with cocktail information search\",\"examples\":[\"List a random cocktail\",\"Find a cocktail with rum\",\"What are the ingredients for a Margarita?\"],\"id\":\"cocktail_cocktail\",\"inputModes\":[\"text/plain\"],\"name\":\"Search cocktail information\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"cocktail\",\"drink\",\"recipe\",\"ingredients\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"http://localhost:9999/\",\"version\":\"1.0.0\"}",
+            "name": "handle_authenticated_agent_card"
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "PROJECT_ID",
+              "value": "dw-genai-dev"
+            },
+            {
+              "name": "LOCATION",
+              "value": "us-central1"
+            },
+            {
+              "name": "BUCKET",
+              "value": "dw-genai-dev-bucket"
+            },
+            {
+              "name": "GOOGLE_GENAI_USE_VERTEXAI",
+              "value": "TRUE"
+            },
+            {
+              "name": "DEBUG_MODE",
+              "value": "False"
+            },
+            {
+              "name": "CT_MCP_SERVER_URL",
+              "value": "https://cocktail-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/"
+            },
+            {
+              "name": "GOOGLE_GENAI_MODEL",
+              "value": "gemini-2.5-flash"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com",
+        "agentCard": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "application/json"
+          ],
+          "description": "A helpful assistant agent that can answer questions.",
+          "name": "Cocktail Agent lg",
+          "preferredTransport": "HTTP+JSON",
+          "protocolVersion": "0.3.0",
+          "skills": [
+            {
+              "description": "Helps with cocktail information search",
+              "examples": [
+                "List a random cocktail",
+                "Find a cocktail with rum",
+                "What are the ingredients for a Margarita?"
+              ],
+              "id": "cocktail_cocktail",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Search cocktail information",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "cocktail",
+                "drink",
+                "recipe",
+                "ingredients"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": true,
+          "url": "http://localhost:9999/",
+          "version": "1.0.0"
+        }
+      },
+      "createTime": "2026-02-17T18:22:06.153805Z",
+      "updateTime": "2026-02-17T18:28:11.113850Z",
+      "description": "A helpful assistant agent that can answer questions."
+    },
+    {
+      "name": "projects/496235138247/locations/us-central1/reasoningEngines/1671763449568296960",
+      "displayName": "Hosting Agent - Gemini Enterprise",
+      "spec": {
+        "serviceAccount": "496235138247-compute@developer.gserviceaccount.com",
+        "packageSpec": {
+          "pickleObjectGcsUri": "gs://dw-genai-dev-bucket/agent_engine/agent_engine.pkl",
+          "dependencyFilesGcsUri": "gs://dw-genai-dev-bucket/agent_engine/dependencies.tar.gz",
+          "requirementsGcsUri": "gs://dw-genai-dev-bucket/agent_engine/requirements.txt",
+          "pythonVersion": "3.13"
+        },
+        "classMethods": [
+          {
+            "name": "on_message_send",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent - Gemini Enterprise\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":[{\"GoogleOAuth\":[\"https://www.googleapis.com/auth/cloud-platform\",\"openid\",\"email\",\"profile\"]}],\"securitySchemes\":{\"GoogleOAuth\":{\"description\":\"OAuth2 for Google Calendar API\",\"flows\":{\"authorizationCode\":{\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/auth\",\"refreshUrl\":null,\"scopes\":{\"https://www.googleapis.com/auth/cloud-platform\":\"Full access to Google Cloud Platform services\",\"openid\":\"Authenticate user identity\",\"email\":\"Access user's email address\",\"profile\":\"Access user's basic profile information\"},\"tokenUrl\":\"https://oauth2.googleapis.com/token\"},\"clientCredentials\":null,\"implicit\":null,\"password\":null},\"oauth2MetadataUrl\":null,\"type\":\"oauth2\"}},\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"https://us-central1-aiplatform.googleapis.com/v1beta1/projects/dw-genai-dev/locations/us-central1/reasoningEngines/test-agent-engine/a2a\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {},
+              "type": "object"
+            },
+            "description": null
+          },
+          {
+            "name": "on_get_task",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent - Gemini Enterprise\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":[{\"GoogleOAuth\":[\"https://www.googleapis.com/auth/cloud-platform\",\"openid\",\"email\",\"profile\"]}],\"securitySchemes\":{\"GoogleOAuth\":{\"description\":\"OAuth2 for Google Calendar API\",\"flows\":{\"authorizationCode\":{\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/auth\",\"refreshUrl\":null,\"scopes\":{\"https://www.googleapis.com/auth/cloud-platform\":\"Full access to Google Cloud Platform services\",\"openid\":\"Authenticate user identity\",\"email\":\"Access user's email address\",\"profile\":\"Access user's basic profile information\"},\"tokenUrl\":\"https://oauth2.googleapis.com/token\"},\"clientCredentials\":null,\"implicit\":null,\"password\":null},\"oauth2MetadataUrl\":null,\"type\":\"oauth2\"}},\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"https://us-central1-aiplatform.googleapis.com/v1beta1/projects/dw-genai-dev/locations/us-central1/reasoningEngines/test-agent-engine/a2a\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {},
+              "type": "object"
+            },
+            "description": null
+          },
+          {
+            "name": "on_cancel_task",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent - Gemini Enterprise\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":[{\"GoogleOAuth\":[\"https://www.googleapis.com/auth/cloud-platform\",\"openid\",\"email\",\"profile\"]}],\"securitySchemes\":{\"GoogleOAuth\":{\"description\":\"OAuth2 for Google Calendar API\",\"flows\":{\"authorizationCode\":{\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/auth\",\"refreshUrl\":null,\"scopes\":{\"https://www.googleapis.com/auth/cloud-platform\":\"Full access to Google Cloud Platform services\",\"openid\":\"Authenticate user identity\",\"email\":\"Access user's email address\",\"profile\":\"Access user's basic profile information\"},\"tokenUrl\":\"https://oauth2.googleapis.com/token\"},\"clientCredentials\":null,\"implicit\":null,\"password\":null},\"oauth2MetadataUrl\":null,\"type\":\"oauth2\"}},\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"https://us-central1-aiplatform.googleapis.com/v1beta1/projects/dw-genai-dev/locations/us-central1/reasoningEngines/test-agent-engine/a2a\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {},
+              "type": "object"
+            },
+            "description": null
+          },
+          {
+            "name": "handle_authenticated_agent_card",
+            "a2a_agent_card": "{\"additionalInterfaces\":null,\"capabilities\":{\"extensions\":null,\"pushNotifications\":null,\"stateTransitionHistory\":null,\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"A helpful assistant agent that can answer questions.\",\"documentationUrl\":null,\"iconUrl\":null,\"name\":\"Hosting Agent - Gemini Enterprise\",\"preferredTransport\":\"HTTP+JSON\",\"protocolVersion\":\"0.3.0\",\"provider\":null,\"security\":[{\"GoogleOAuth\":[\"https://www.googleapis.com/auth/cloud-platform\",\"openid\",\"email\",\"profile\"]}],\"securitySchemes\":{\"GoogleOAuth\":{\"description\":\"OAuth2 for Google Calendar API\",\"flows\":{\"authorizationCode\":{\"authorizationUrl\":\"https://accounts.google.com/o/oauth2/auth\",\"refreshUrl\":null,\"scopes\":{\"https://www.googleapis.com/auth/cloud-platform\":\"Full access to Google Cloud Platform services\",\"openid\":\"Authenticate user identity\",\"email\":\"Access user's email address\",\"profile\":\"Access user's basic profile information\"},\"tokenUrl\":\"https://oauth2.googleapis.com/token\"},\"clientCredentials\":null,\"implicit\":null,\"password\":null},\"oauth2MetadataUrl\":null,\"type\":\"oauth2\"}},\"signatures\":null,\"skills\":[{\"description\":\"Helps with weather in city, or states, and cocktails\",\"examples\":[\"weather in LA, CA\",\"List a random cocktail\",\"What is a margarita?\"],\"id\":\"hosting_agent\",\"inputModes\":[\"text/plain\"],\"name\":\"Search hosting agent\",\"outputModes\":[\"text/plain\"],\"security\":null,\"tags\":[\"host_agent\"]}],\"supportsAuthenticatedExtendedCard\":true,\"url\":\"https://us-central1-aiplatform.googleapis.com/v1beta1/projects/dw-genai-dev/locations/us-central1/reasoningEngines/test-agent-engine/a2a\",\"version\":\"1.0.0\"}",
+            "api_mode": "a2a_extension",
+            "parameters": {
+              "required": [
+                "request",
+                "context"
+              ],
+              "properties": {},
+              "type": "object"
+            },
+            "description": null
+          }
+        ],
+        "deploymentSpec": {
+          "env": [
+            {
+              "name": "WEATHER_REMOTE_MCP_SERVER_NAME",
+              "value": "weather-remote-mcp-server"
+            },
+            {
+              "name": "WEA_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/2288765394611077120/a2a"
+            },
+            {
+              "name": "CT_AGENT_URL",
+              "value": "https://us-central1-aiplatform.googleapis.com/v1beta1/projects/496235138247/locations/us-central1/reasoningEngines/6139906025966272512/a2a"
+            }
+          ]
+        },
+        "agentFramework": "custom",
+        "effectiveIdentity": "496235138247-compute@developer.gserviceaccount.com"
+      },
+      "createTime": "2025-11-24T19:05:22.407029Z",
+      "updateTime": "2025-11-24T19:09:14.454608Z",
+      "description": "A helpful assistant agent that can answer questions."
+    }
+  ]
+}

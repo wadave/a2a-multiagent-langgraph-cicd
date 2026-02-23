@@ -110,21 +110,4 @@ resource "google_cloud_run_v2_service_iam_member" "frontend_public_access" {
   member   = "allUsers"
 }
 
-# IAM policy to allow public access to cocktail MCP server
-resource "google_cloud_run_v2_service_iam_member" "cocktail_mcp_public_access" {
-  name     = google_cloud_run_v2_service.cocktail_mcp_server.name
-  location = google_cloud_run_v2_service.cocktail_mcp_server.location
-  project  = google_cloud_run_v2_service.cocktail_mcp_server.project
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}
-
-# IAM policy to allow public access to weather MCP server
-resource "google_cloud_run_v2_service_iam_member" "weather_mcp_public_access" {
-  name     = google_cloud_run_v2_service.weather_mcp_server.name
-  location = google_cloud_run_v2_service.weather_mcp_server.location
-  project  = google_cloud_run_v2_service.weather_mcp_server.project
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}
 
