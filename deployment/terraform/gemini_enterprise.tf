@@ -81,7 +81,5 @@ module "gemini_enterprise_agent_engine_register" {
   # Note: The user needs to provide the app id for staging and prod
   gemini_enterprise_app_id = each.key == "prod" ? var.ge_app_prod : var.ge_app_staging
 
-  authorization_ids = { "AUTH_ID" = "${each.key}-${local.auth_id}" }
-
   agent_engine_id = var.agent_engine_id
 }
