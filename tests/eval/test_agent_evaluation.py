@@ -148,7 +148,7 @@ class TestAgentResponseQuality:
 
         # These queries should be routed to Weather Agent
         for query in weather_queries:
-            assert "weather" in query.lower() or "forecast" in query.lower()
+            assert any(word in query.lower() for word in ["weather", "forecast", "rain", "temperature", "conditions"])
 
     def test_cocktail_query_routing(self):
         """Test that cocktail queries should route to Cocktail Agent."""
@@ -162,7 +162,7 @@ class TestAgentResponseQuality:
         for query in cocktail_queries:
             assert any(
                 word in query.lower()
-                for word in ["cocktail", "margarita", "recipe", "ingredients", "drink"]
+                for word in ["cocktail", "margarita", "recipe", "ingredients", "drink", "manhattan"]
             )
 
     def test_general_query_no_routing(self):

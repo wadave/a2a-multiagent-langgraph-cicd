@@ -30,9 +30,27 @@ logger = logging.getLogger(__name__)
 
 
 def load_evalset(evalset_path: Path) -> Dict:
-    """Load an evaluation set."""
+    """Load an evaluation set and normalize examples."""
     with open(evalset_path) as f:
-        return json.load(f)
+        data = json.load(f)
+
+    # Handle different top-level keys for cases/examples
+    examples = data.get("examples") or data.get("eval_cases") or []
+    
+    # Normalize each example/case
+    normalized_examples = []
+    for ex in examples:
+        normalized = ex.copy()
+        # Normalize ID
+        if "id" not in normalized and "eval_id" in normalized:
+            normalized["id"] = normalized["eval_id"]
+        # Normalize input
+        if "input" not in normalized and "session_input" in normalized:
+            normalized["input"] = normalized["session_input"]
+        normalized_examples.append(normalized)
+    
+    data["examples"] = normalized_examples
+    return data
 
 
 def load_eval_config(config_path: Path) -> Dict:
@@ -169,16 +187,18 @@ def main():
     evalset = load_evalset(evalset_path)
 
     logger.info(f"Running evaluation: {evalset.get('name', args.evalset)}")
-    logger.info(f"Total examples: {len(evalset.get('examples', []))}")
+    
+    examples = evalset.get("examples", [])
+    logger.info(f"Total examples: {len(examples)}")
 
     # Run evaluation
     results = []
-    examples = evalset.get("examples", [])
 
     for i, example in enumerate(examples, 1):
         logger.info(f"Evaluating example {i}/{len(examples)}: {example.get('id')}")
         result = evaluate_example(example, config)
         results.append(result)
+
 
         if result["passed"]:
             logger.info(f"  ✓ PASSED (score: {result['avg_score']:.2f})")

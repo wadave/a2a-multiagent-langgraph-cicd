@@ -14,6 +14,7 @@
 # Author: Dave Wang
 
 import json
+import logging
 from typing import Any, Dict, Optional
 
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut
@@ -24,6 +25,13 @@ import asyncio
 
 # Initialize FastMCP server
 mcp = FastMCP("weather MCP server")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 # --- Configuration & Constants ---
@@ -54,17 +62,21 @@ async def get_weather_response(endpoint: str) -> Optional[Dict[str, Any]]:
         response = await http_client.get(endpoint)
         response.raise_for_status()  # Raises HTTPStatusError for 4xx/5xx responses
         return response.json()
-    except httpx.HTTPStatusError:
+    except httpx.HTTPStatusError as e:
         # Specific HTTP errors (like 404 Not Found, 500 Server Error)
+        logger.error(f"HTTP error occurred: {e}")
         return None
     except httpx.TimeoutException:
         # Request timed out
+        logger.error(f"Request to {endpoint} timed out")
         return None
-    except httpx.RequestError:
+    except httpx.RequestError as e:
         # Other request errors (connection, DNS, etc.)
+        logger.error(f"Request error occurred: {e}")
         return None
     except json.JSONDecodeError:
         # Response was not valid JSON
+        logger.error(f"Failed to decode JSON from {endpoint}")
         return None
 
 
@@ -153,12 +165,12 @@ async def _internal_get_forecast(latitude: float, longitude: float) -> str:
         response = await http_client.get(forecast_url)
         response.raise_for_status()
         forecast_data = response.json()
-    except httpx.HTTPStatusError:
-        pass  # Error handled by returning None below
-    except httpx.RequestError:
-        pass  # Error handled by returning None below
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error fetching forecast: {e}")
+    except httpx.RequestError as e:
+        logger.error(f"Request error fetching forecast: {e}")
     except json.JSONDecodeError:
-        pass  # Error handled by returning None below
+        logger.error("Failed to decode JSON from forecast URL")
 
     if forecast_data is None or "properties" not in forecast_data:
         return "Failed to retrieve detailed forecast data from NWS."
@@ -221,8 +233,10 @@ async def get_forecast_by_city(city: str, state: str) -> str:
         )
 
     except GeocoderTimedOut:
+        logger.error(f"Geocoding timed out for query: {query}")
         return f"Could not get coordinates for '{city_name}, {state_code}': The location service timed out."
-    except GeocoderServiceError:
+    except GeocoderServiceError as e:
+        logger.error(f"Geocoding service error for query: {query}: {e}")
         return f"Could not get coordinates for '{city_name}, {state_code}': The location service returned an error."
 
     # --- Handle Geocoding Result ---
@@ -240,7 +254,7 @@ async def get_forecast_by_city(city: str, state: str) -> str:
 async def shutdown_event() -> None:
     """Gracefully close the httpx client."""
     await http_client.aclose()
-    # print("HTTP client closed.") # Optional print statement if desired
+    logger.info("HTTP client closed.")
 
 
 if __name__ == "__main__":

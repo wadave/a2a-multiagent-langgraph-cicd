@@ -26,6 +26,7 @@ The main components are:
 """
 
 import asyncio
+import logging
 import os
 import traceback
 from typing import AsyncIterator, List
@@ -46,6 +47,13 @@ from dotenv import load_dotenv
 from google.auth import default
 from google.auth.transport.requests import Request as AuthRequest
 from google.genai import types as genai_types  # Aliased to avoid conflict
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -102,7 +110,7 @@ class GoogleAuth(httpx.Auth):
         """
         # Refresh the credentials if they are expired
         if not self.credentials.valid:
-            print("Credentials expired, refreshing...")
+            logger.info("Credentials expired, refreshing...")
             self.credentials.refresh(self.auth_request)
 
         # Add the Authorization header to the request
@@ -138,9 +146,9 @@ async def get_response_from_agent(
 
     try:
         # --- 1. Get Agent Card ---
-        print("Fetching agent card...")
+        logger.info("Fetching agent card...")
         remote_a2a_agent_card = await get_agent_card(remote_a2a_agent_resource_name)
-        print("Agent card fetched.")
+        logger.info("Agent card fetched.")
 
         # --- 2. Create HTTP Client with Auth ---
         httpx_client = httpx.AsyncClient(
@@ -157,7 +165,7 @@ async def get_response_from_agent(
             )
         )
         a2a_client = factory.create(remote_a2a_agent_card)
-        print("A2A client created.")
+        logger.info("A2A client created.")
 
         # --- 4. Create Message ---
         message = Message(
@@ -167,7 +175,7 @@ async def get_response_from_agent(
         )
 
         # --- 5. Send Message and Stream Response ---
-        print(f"Sending message to agent: {query}")
+        logger.info(f"Sending message to agent: {query}")
         response_stream = a2a_client.send_message(message)
 
         final_result_text = None
@@ -176,11 +184,11 @@ async def get_response_from_agent(
         async for response_chunk in response_stream:
             task_object = response_chunk[0]  # Task object is the first element
 
-            print(f"Received task update. Status: {task_object.status.state}")
+            logger.info(f"Received task update. Status: {task_object.status.state}")
 
             # Wait for the task to complete
             if task_object.status.state == TaskState.completed:
-                print("Task completed. Checking for artifacts...")
+                logger.info("Task completed. Checking for artifacts...")
                 if hasattr(task_object, "artifacts") and task_object.artifacts:
                     for artifact in task_object.artifacts:
                         # Find the first text part in the artifacts
@@ -188,18 +196,18 @@ async def get_response_from_agent(
                             part = artifact.parts[0]
 
                             # Debug: print the actual type and value
-                            print(f"DEBUG: part.root type: {type(part.root)}")
-                            print(f"DEBUG: part.root value: {str(part.root)[:200]}...")
+                            logger.debug(f"DEBUG: part.root type: {type(part.root)}")
+                            logger.debug(f"DEBUG: part.root value: {str(part.root)[:200]}...")
 
                             # Try to access as TextPart
                             if isinstance(part.root, TextPart):
                                 final_result_text = part.root.text
-                                print(f"Found artifact text: {final_result_text[:50]}...")
+                                logger.info(f"Found artifact text: {final_result_text[:50]}...")
                                 break
                             # Handle list/dict responses (e.g., from LangGraph agents)
                             elif hasattr(part.root, 'text'):
                                 final_result_text = part.root.text
-                                print(f"Found text field: {final_result_text[:50]}...")
+                                logger.info(f"Found text field: {final_result_text[:50]}...")
                                 break
                             # Try to parse as dict/list if it's serialized
                             else:
@@ -221,7 +229,7 @@ async def get_response_from_agent(
                                             if isinstance(parsed, list) and len(parsed) > 0:
                                                 if isinstance(parsed[0], dict) and 'text' in parsed[0]:
                                                     final_result_text = parsed[0]['text']
-                                                    print(f"Extracted text from signature list: {final_result_text[:50]}...")
+                                                    logger.info(f"Extracted text from signature list: {final_result_text[:50]}...")
                                                     break
                                     # If it looks like a list representation
                                     elif part_str.startswith('[') and 'text' in part_str:
@@ -229,10 +237,10 @@ async def get_response_from_agent(
                                         if isinstance(parsed, list) and len(parsed) > 0:
                                             if isinstance(parsed[0], dict) and 'text' in parsed[0]:
                                                 final_result_text = parsed[0]['text']
-                                                print(f"Extracted text from list: {final_result_text[:50]}...")
+                                                logger.info(f"Extracted text from list: {final_result_text[:50]}...")
                                                 break
                                 except Exception as e:
-                                    print(f"DEBUG: Failed to parse - {e}")
+                                    logger.debug(f"DEBUG: Failed to parse - {e}")
                                     pass
                 if final_result_text:
                     break  # Stop iterating task updates
@@ -240,7 +248,7 @@ async def get_response_from_agent(
             # Handle task failure
             elif task_object.status.state == TaskState.failed:
                 error_message = f"Task failed: {task_object.status.message if task_object.status else 'Unknown error'}"
-                print(error_message)
+                logger.error(error_message)
                 yield gr.ChatMessage(role="assistant", content=error_message)
                 return  # Exit the generator
 
@@ -248,15 +256,14 @@ async def get_response_from_agent(
         if final_result_text:
             yield gr.ChatMessage(role="assistant", content=final_result_text)
         else:
-            print("Task finished but no text artifact was found.")
+            logger.info("Task finished but no text artifact was found.")
             yield gr.ChatMessage(
                 role="assistant",
                 content="I processed your request but found no text response.",
             )
 
     except Exception as e:
-        print(f"Error in get_response_from_agent (Type: {type(e)}): {e}")
-        traceback.print_exc()  # This will print the full traceback
+        logger.error(f"Error in get_response_from_agent (Type: {type(e)}): {e}", exc_info=True)
         yield gr.ChatMessage(
             role="assistant",
             content=f"An error occurred: {e}",
@@ -266,11 +273,11 @@ async def get_response_from_agent(
         # Close the A2A client, which also closes the httpx_client it manages
         if a2a_client:
             await a2a_client.close()
-            print("A2A client closed.")
+            logger.info("A2A client closed.")
         elif httpx_client:
             # Fallback if a2a_client creation failed but httpx_client was made
             await httpx_client.aclose()
-            print("HTTPX client closed.")
+            logger.info("HTTPX client closed.")
 
 
 async def main():
@@ -295,18 +302,18 @@ async def main():
             description="This assistant can help you to check weather and find cocktail information",
         )
 
-    print("Launching Gradio interface on http://0.0.0.0:8080")
+    logger.info("Launching Gradio interface on http://0.0.0.0:8080")
     demo.queue().launch(
         server_name="0.0.0.0",
         server_port=8080,
     )
-    print("Gradio application has been shut down.")
+    logger.info("Gradio application has been shut down.")
 
 
 if __name__ == "__main__":
     # Create the 'static' directory if it doesn't exist for the image
     if not os.path.exists("static"):
         os.makedirs("static")
-        print("Created 'static' directory. Please add your 'a2a.png' image there.")
+        logger.info("Created 'static' directory. Please add your 'a2a.png' image there.")
 
     asyncio.run(main())

@@ -13,6 +13,7 @@
 # limitations under the License.
 # Author: Dave Wang
 
+import logging
 from typing import Any, Dict, Optional
 import httpx
 from fastmcp import FastMCP
@@ -20,6 +21,13 @@ import asyncio
 
 # Initialize FastMCP server
 mcp = FastMCP("cocktail MCP server")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Constants
 API_BASE_URL = "https://www.thecocktaildb.com/api/json/v1/1/"
@@ -51,10 +59,10 @@ async def make_cocktaildb_request(
         return data
 
     except httpx.HTTPStatusError as e:
-        print(f"HTTP error occurred: {e}")
+        logger.error(f"HTTP error occurred: {e}")
         return None
     except httpx.RequestError as e:
-        print(f"An error occurred while requesting {endpoint!r}: {e}")
+        logger.error(f"An error occurred while requesting {endpoint!r}: {e}")
         return None
 
 
@@ -198,6 +206,7 @@ async def lookup_cocktail_details_by_id(cocktail_id: str) -> str:
 async def shutdown_event():
     """Gracefully close the shared httpx client."""
     await http_client.aclose()
+    logger.info("HTTP client closed.")
 
 
 # --- Run Server ---
