@@ -5,6 +5,9 @@ on:
     branches:
       - staging
       - main
+    paths-ignore:
+      - '**/*.md'
+      - 'assets/**'
   workflow_dispatch:
     inputs:
       force_deploy_all:
