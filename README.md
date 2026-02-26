@@ -76,8 +76,9 @@ The system is designed with a "Security-First" approach and comprehensive observ
 
 #### Observability
 
-- **Standardized Cloud Logging**: The system has transitioned from legacy `print()` statements to the standard Python **`logging`** module. This ensures that logs are captured with proper severity levels (INFO, ERROR, etc.) and structured for **Google Cloud Logging**.
-- **Centralized Monitoring**: All components (Frontend, Hosting Agent, and MCP Servers) output these standardized logs, which are automatically consolidated in the **Cloud Logging** dashboard for real-time monitoring and rapid troubleshooting.
+- **Standardized Cloud Logging**: The system uses an explicit Google Cloud Logging integration via a shared [logging_utils.py](file:///usr/local/google/home/wangdave/remote_ws/projects/a2a-multiagent-langgraph-cicd/src/a2a_agents/common/logging_utils.py) utility. This replaces legacy `print()` statements and ensures that logs are captured with proper severity levels and structured specifically for **Google Cloud Logging**.
+- **Centralized Monitoring**: All components (Frontend, Hosting Agent, and MCP Servers) leverage this utility to output logs that are automatically consolidated in the **Cloud Logging** dashboard. Each component uses a distinct `log_name` (e.g., `base-mcp-agent`, `frontend-app`) for easier filtering and monitoring.
+- **Environment Control**: Integration can be toggled via `USE_CLOUD_LOGGING` (defaults to `TRUE`). It gracefully falls back to standard Python console logging in local development environments.
 - **Execution Capture**: For specialized agents running on Agent Engine, execution logs are captured by the runtime environment and are accessible through the Vertex AI Logging interface.
 
 ### Application Screenshot

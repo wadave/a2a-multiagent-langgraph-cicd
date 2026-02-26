@@ -26,11 +26,12 @@ import asyncio
 # Initialize FastMCP server
 mcp = FastMCP("weather MCP server")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+try:
+    from a2a_agents.common.logging_utils import setup_cloud_logging
+    setup_cloud_logging(log_name="weather-mcp-server")
+except ImportError:
+    logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 

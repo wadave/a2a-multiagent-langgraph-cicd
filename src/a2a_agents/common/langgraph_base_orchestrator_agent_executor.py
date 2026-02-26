@@ -42,9 +42,10 @@ if TYPE_CHECKING:
     from langgraph.graph.graph import CompiledGraph
 
 
+from a2a_agents.common.logging_utils import setup_cloud_logging
+
 logger = logging.getLogger(__name__)
-if not logger.hasHandlers():
-    logging.basicConfig(level=logging.INFO)
+setup_cloud_logging(log_name="base-orchestrator-executor")
 
 
 class GoogleAuth(httpx.Auth):

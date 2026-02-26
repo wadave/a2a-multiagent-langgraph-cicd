@@ -28,9 +28,10 @@ from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 
 
+from a2a_agents.common.logging_utils import setup_cloud_logging
+
 logger = logging.getLogger(__name__)
-if not logger.hasHandlers():
-    logging.basicConfig(level=logging.INFO)
+setup_cloud_logging(log_name="base-mcp-agent")
 
 memory = MemorySaver()
 

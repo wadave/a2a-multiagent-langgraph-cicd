@@ -23,6 +23,7 @@ dependencies = [
     "nbqa>=1.9.1",
     "pip>=25.2",
     "python-dotenv>=1.0.0",
+    "google-cloud-logging>=3.12.1",
 ]
 
 [project.optional-dependencies]

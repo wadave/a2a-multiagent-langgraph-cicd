@@ -40,7 +40,10 @@ from a2a.types import (
 )
 
 
+from a2a_agents.common.logging_utils import setup_cloud_logging
+
 logger = logging.getLogger(__name__)
+setup_cloud_logging(log_name="base-orchestrator-agent")
 memory = MemorySaver()
 
 

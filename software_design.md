@@ -67,6 +67,7 @@ graph TD
 - **Core Framework**: Python 3.12+, LangGraph.
 - **AI Models**: Gemini (Vertex AI).
 - **Infrastructure**: Google Cloud (Cloud Run, Secret Manager, Cloud Logging).
+- **Observability**: Google Cloud Logging SDK (`google-cloud-logging`).
 - **Deployment**: Terraform, GitHub Actions.
 
 ## Detailed Design
@@ -121,7 +122,8 @@ Communication between agents and tool servers follows the standard MCP specifica
 ### Logging
 
 - **Standard Logging**: Python `logging` module used throughout the codebase.
-- **Cloud Logging**: All `stdout/stderr` output from Cloud Run is automatically captured and structured.
+- **Explicit Cloud Logging**: The system integrates the `google-cloud-logging` SDK via a shared utility function `setup_cloud_logging`. This ensures logs are correctly structured and labeled within the Google Cloud console.
+- **Idempotent Initialization**: The logging system uses a state-aware initialization pattern to prevent duplicate log handlers and ensuring consistent output even in multi-instantiated agent environments.
 - **Traceability**: `context_id` and `task_id` are propagated across agent calls for request tracing.
 
 ## Deployment Architecture

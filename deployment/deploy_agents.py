@@ -60,7 +60,8 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
                 "langchain-core>=0.3.76",
                 "langchain-google-vertexai>=2.1.2",
                 "langchain-mcp-adapters>=0.1.10",
-                "langgraph>=0.6.8"
+                "langgraph>=0.6.8",
+                "google-cloud-logging>=3.11.2"
             ],
             "http_options": {
                 "base_url": f"https://{location}-aiplatform.googleapis.com",

@@ -48,11 +48,10 @@ from google.auth import default
 from google.auth.transport.requests import Request as AuthRequest
 from google.genai import types as genai_types  # Aliased to avoid conflict
 
+from a2a_agents.common.logging_utils import setup_cloud_logging
+
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+setup_cloud_logging(log_name="frontend-app")
 logger = logging.getLogger(__name__)
 
 load_dotenv()
