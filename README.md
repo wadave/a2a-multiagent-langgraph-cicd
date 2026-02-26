@@ -19,7 +19,7 @@ The application uses a multi-agent orchestrated architecture, leveraging Googleâ
     - **Weather Agent**: Receives sub-tasks via A2A, processes weather-related reasoning using LangGraph, and retrieves data using an **MCP Client**.
 4.  **Data Retrieval**: Specialized agents communicate with remote **MCP Servers** via StreamableHTTP to fetch real-world data from the public internet (TheCocktailDB and National Weather Service APIs).
 
-![architecture](assets/a2a_lg.jpeg)
+![architecture](assets/a2a-lg.jpeg)
 
 ```mermaid
 graph TD
