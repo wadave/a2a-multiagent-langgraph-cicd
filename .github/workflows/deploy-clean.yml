@@ -25,8 +25,6 @@ jobs:
     env:
       PROJECT_ID: ${{ vars.PROJECT_ID }}
       PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
-      WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
       REPOSITORY_OWNER: ${{ vars.REPOSITORY_OWNER }}
       GE_APP_STAGING: ${{ vars.GE_APP_STAGING }}
       OAUTH_CLIENT_ID_SECRET_NAME: ${{ vars.OAUTH_CLIENT_ID_SECRET_NAME }}
@@ -40,8 +38,8 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
-          service_account: '${{ env.SERVICE_ACCOUNT }}'
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github-actions'
+          service_account: 'github-runner@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
