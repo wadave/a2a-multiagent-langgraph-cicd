@@ -216,6 +216,9 @@ Pipfile
 *.tfvars
 .terraform*
 .terraform/
+tfplan
+*.tfplan
+engines.json
 
 # ==========================
 # Project Specific / Secrets

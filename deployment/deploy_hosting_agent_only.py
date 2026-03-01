@@ -23,9 +23,9 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 def main():
-    project_id = os.environ.get("PROJECT_ID", "dw-genai-dev")
+    project_id = os.environ.get("PROJECT_ID")
     location = os.environ.get("GOOGLE_CLOUD_REGION", "us-central1")
-    project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
+    project_number = os.environ.get("PROJECT_NUMBER")
     bucket_name = f"{project_id}-bucket"
     google_genai_model = os.environ.get("GOOGLE_GENAI_MODEL", "gemini-2.5-flash")
 

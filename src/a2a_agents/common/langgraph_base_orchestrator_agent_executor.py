@@ -85,9 +85,9 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
 
     def _init_vertexai(self) -> None:
         """Initialize Vertex AI with project configuration."""
-        project_id = os.getenv("PROJECT_ID", "dw-genai-dev")
+        project_id = os.getenv("PROJECT_ID")
         location = os.getenv("LOCATION", "us-central1")
-        storage = os.getenv("BUCKET", "dw-genai-dev-bucket")
+        storage = os.getenv("BUCKET")
 
         vertexai.init(
             project=project_id,

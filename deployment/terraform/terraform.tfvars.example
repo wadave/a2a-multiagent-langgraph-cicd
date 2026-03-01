@@ -1,0 +1,41 @@
+# Local Terraform variable values.
+# Copy this file to terraform.tfvars and fill in your values.
+#   cp terraform.tfvars.example terraform.tfvars
+# terraform.tfvars is gitignored — never commit it.
+#
+# Terraform auto-loads terraform.tfvars, so you can then run:
+#   ./deploy.sh staging plan
+#   ./deploy.sh staging apply
+# or directly:
+#   terraform init -backend-config="bucket=YOUR_PROJECT-terraform-state" \
+#                  -backend-config="prefix=a2a-multiagent-langgraph-cicd/dev"
+#   terraform plan
+#   terraform apply
+
+# ---- GCP Project Configuration ----
+cicd_runner_project_id = "your-project-id"        # project running CI/CD and Cloud Run services
+staging_project_id     = "your-staging-project-id"
+prod_project_id        = "your-prod-project-id"
+project_number         = "123456789012"
+region                 = "us-central1"
+
+# ---- GitHub Configuration ----
+repository_name  = "a2a-multiagent-langgraph-cicd"
+repository_owner = "your-github-org-or-user"
+
+# ---- Gemini Enterprise Configuration ----
+ge_app_staging = ""   # Your staging GE App ID (e.g. "enterprise-search-XXXXXXXX_XXXXXXXXXXXXX")
+ge_app_prod    = ""   # Your prod GE App ID
+agents_region  = "global"
+
+# ---- OAuth Configuration ----
+oauth_client_id_secret_name = "client_secret"   # Secret Manager secret name
+
+# ---- Gemini Enterprise Authorization ID ----
+auth_id = "a2a_langgraph_oauth_token_v4"
+
+# ---- Agent Engine ID ----
+# Populated automatically by deploy.sh from GCS state.
+# For direct terraform commands, override on the CLI:
+#   terraform plan -var="agent_engine_id=projects/.../reasoningEngines/..."
+# agent_engine_id = "unset"

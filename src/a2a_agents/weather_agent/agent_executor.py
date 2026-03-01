@@ -32,7 +32,7 @@ class WeatherAgentExecutor(LanggraphBaseMCPAgentExecutor):
             return os.environ["WEA_MCP_SERVER_URL"]
 
         # Otherwise construct from project number and region env vars
-        project_number = os.environ.get("PROJECT_NUMBER", "496235138247")
+        project_number = os.environ.get("PROJECT_NUMBER")
         region = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
         return f"https://weather-remote-mcp-server-lg-{project_number}.{region}.run.app/mcp/"
 

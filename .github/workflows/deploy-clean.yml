@@ -23,10 +23,14 @@ jobs:
       id-token: 'write'
 
     env:
-      PROJECT_ID: dw-genai-dev
-      PROJECT_NUMBER: '496235138247'
-      WORKLOAD_IDENTITY_PROVIDER: 'projects/496235138247/locations/global/workloadIdentityPools/github/providers/github-actions'
-      SERVICE_ACCOUNT: 'github-runner@dw-genai-dev.iam.gserviceaccount.com'
+      PROJECT_ID: ${{ vars.PROJECT_ID }}
+      PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
+      WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+      REPOSITORY_OWNER: ${{ vars.REPOSITORY_OWNER }}
+      GE_APP_STAGING: ${{ vars.GE_APP_STAGING }}
+      OAUTH_CLIENT_ID_SECRET_NAME: ${{ vars.OAUTH_CLIENT_ID_SECRET_NAME }}
+      AUTH_ID: ${{ vars.AUTH_ID }}
 
     steps:
       - name: Checkout Code
@@ -123,8 +127,12 @@ jobs:
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
             -var="repository_name=a2a-multiagent-langgraph-cicd" \
-            -var="repository_owner=wadave" \
-            -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+            -var="repository_owner=${{ env.REPOSITORY_OWNER }}" \
+            -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}" \
+            -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
+            -var="auth_id=${{ env.AUTH_ID }}" \
+            -var="ge_app_staging=${{ env.GE_APP_STAGING }}" \
+            -var="agents_region=global"
         working-directory: deployment/terraform
 
       # Verification
