@@ -7,7 +7,12 @@ on:
       - main
     paths-ignore:
       - '**/*.md'
+      - '**/*.txt'
+      - '**/*.rst'
       - 'assets/**'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
   workflow_dispatch:
     inputs:
       force_deploy_all:
