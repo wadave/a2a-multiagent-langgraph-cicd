@@ -7,7 +7,7 @@ Using WIF, **no long-lived GCP credentials (like Service Account JSON keys) are 
 ## 1. The Setup (Human Required)
 
 A Cloud Administrator configures a trust relationship between GCP and GitHub ahead of time. You tell Google Cloud:
-*"I authorize any GitHub Action running specifically in my repository (e.g., `wadave/a2a-multiagent-ge-cicd`) to act as a specific Service Account."*
+*"I authorize any GitHub Action running specifically in my repository (e.g., `wadave/a2a-multiagent-langgraph-cicd`) to act as a specific Service Account."*
 
 You configure this by creating a **Workload Identity Pool** and **Provider** inside your GCP project.
 

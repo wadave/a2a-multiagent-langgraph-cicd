@@ -2,6 +2,34 @@
 
 This project demonstrates a multi-agent system using Agent2Agent (A2A), LangGraph, Vertex AI Agent Engine, MCP servers, and a CI/CD pipeline powered by GitHub Actions and Terraform.
 
+## Table of Contents
+
+- [Overview](#overview)
+  - [Architecture](#architecture)
+  - [Security and Observability](#security-and-observability)
+  - [Application Screenshot](#application-screenshot)
+- [Project Structure](#project-structure)
+- [Core Components](#core-components)
+  - [Agents](#agents)
+  - [MCP Servers and Tools](#mcp-servers-and-tools)
+- [Example Usage](#example-usage)
+- [Setup and Deployment](#setup-and-deployment)
+  - [Prerequisites](#prerequisites)
+  - [Environment Variables for Local Testing](#environment-variables-for-local-testing)
+  - [CI/CD Setup](#cicd-setup)
+  - [Manual Deployment / Local Development](#manual-deployment-local-development)
+  - [Securing the Frontend](#securing-the-frontend)
+- [Testing](#testing)
+  - [Install Dev Dependencies](#install-dev-dependencies)
+  - [Unit Tests](#unit-tests)
+  - [Integration Tests](#integration-tests)
+  - [Run All Tests (excluding integration)](#run-all-tests-excluding-integration)
+  - [Evaluation](#evaluation)
+  - [Load Testing](#load-testing)
+  - [Development Notebooks](#development-notebooks)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+
 ## Overview
 
 A web application demonstrating the integration of Google's Agent2Agent (A2A) protocol and LangGraph for multi-agent orchestration with Model Context Protocol (MCP) clients. A host agent coordinates tasks between specialized remote A2A agents that interact with MCP servers to fulfill user requests.
@@ -9,6 +37,8 @@ A web application demonstrating the integration of Google's Agent2Agent (A2A) pr
 ### Architecture
 
 The application uses a multi-agent orchestrated architecture, leveraging Google’s Agent2Agent (A2A) protocol for secure communication and LangGraph for logic and routing. Authentication is enforced at every layer (indicated by padlock icons in the diagram).
+
+![architecture](assets/a2a-lg.jpeg)
 
 **Component Breakdown & Data Flow:**
 
@@ -19,7 +49,9 @@ The application uses a multi-agent orchestrated architecture, leveraging Google�
     - **Weather Agent**: Receives sub-tasks via A2A, processes weather-related reasoning using LangGraph, and retrieves data using an **MCP Client**.
 4.  **Data Retrieval**: Specialized agents communicate with remote **MCP Servers** via StreamableHTTP to fetch real-world data from the public internet (TheCocktailDB and National Weather Service APIs).
 
-![architecture](assets/a2a-lg.jpeg)
+
+
+System Diagram:
 
 ```mermaid
 graph TD
@@ -238,13 +270,13 @@ Use the `agent-starter-pack` CLI tool to automatically configure GitHub Actions 
 
 3. **Verify the setup:**
    - Check GitHub repository settings → Secrets and variables → Actions
-   - Verify the following secrets are configured:
-     - `GCP_PROJECT_ID_STAGING`
-     - `GCP_PROJECT_NUMBER_STAGING`
-     - `GCP_PROJECT_ID_PROD`
-     - `GCP_PROJECT_NUMBER_PROD`
-     - `WORKLOAD_IDENTITY_PROVIDER`
-     - `SERVICE_ACCOUNT_EMAIL`
+   - Verify the following variables are configured (environment-specific under GitHub Environments or repository variables):
+     - `PROJECT_ID`
+     - `PROJECT_NUMBER`
+     - `REPOSITORY_OWNER`
+     - `GE_APP_STAGING`
+     - `OAUTH_CLIENT_ID_SECRET_NAME`
+     - `AUTH_ID`
 
 #### Option 2: Manual CI/CD Setup
 
@@ -267,7 +299,7 @@ If you prefer to set up CI/CD manually or need more control:
 
    ```bash
    export PROJECT_ID=YOUR_PROJECT_ID
-   export SERVICE_ACCOUNT_NAME=github-actions-sa
+   export SERVICE_ACCOUNT_NAME=github-runner
 
    gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
      --display-name="GitHub Actions Service Account" \
@@ -305,20 +337,20 @@ If you prefer to set up CI/CD manually or need more control:
    export REPO_NAME=YOUR_REPO_NAME
 
    # Create Workload Identity Pool
-   gcloud iam workload-identity-pools create "github-pool" \
+   gcloud iam workload-identity-pools create "github" \
      --location="global" \
      --project=$PROJECT_ID
 
    # Create Workload Identity Provider
-   gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+   gcloud iam workload-identity-pools providers create-oidc "github-actions" \
      --location="global" \
-     --workload-identity-pool="github-pool" \
+     --workload-identity-pool="github" \
      --issuer-uri="https://token.actions.githubusercontent.com" \
      --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
      --project=$PROJECT_ID
 
    # Allow GitHub Actions to impersonate the service account
-   export WORKLOAD_IDENTITY_POOL_ID=$(gcloud iam workload-identity-pools describe github-pool \
+   export WORKLOAD_IDENTITY_POOL_ID=$(gcloud iam workload-identity-pools describe github \
      --location=global --project=$PROJECT_ID --format="value(name)")
 
    gcloud iam service-accounts add-iam-policy-binding $SA_EMAIL \
@@ -327,23 +359,21 @@ If you prefer to set up CI/CD manually or need more control:
      --project=$PROJECT_ID
    ```
 
-5. **Configure GitHub Secrets:**
+5. **Configure GitHub Environments and Variables:**
 
-   Go to your GitHub repository → Settings → Secrets and variables → Actions, and add:
+   Go to your GitHub repository → Settings → Environments. Create `staging` and `production` environments to match the branches.
+   Then, in each environment (or globally in Settings → Secrets and variables → Actions → Variables), add the following variables:
 
    ```bash
-   # For staging environment
-   GCP_PROJECT_ID_STAGING=your-staging-project-id
-   GCP_PROJECT_NUMBER_STAGING=your-staging-project-number
-
-   # For production environment
-   GCP_PROJECT_ID_PROD=your-prod-project-id
-   GCP_PROJECT_NUMBER_PROD=your-prod-project-number
-
-   # Workload Identity Federation
-   WORKLOAD_IDENTITY_PROVIDER=projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
-   SERVICE_ACCOUNT_EMAIL=github-actions-sa@PROJECT_ID.iam.gserviceaccount.com
+   PROJECT_ID=your-project-id
+   PROJECT_NUMBER=your-project-number
+   REPOSITORY_OWNER=your-github-username
+   GE_APP_STAGING=your-gemini-enterprise-app-name
+   OAUTH_CLIENT_ID_SECRET_NAME=your-oauth-secret-name
+   AUTH_ID=your-auth-id
    ```
+   
+   *Note: `WORKLOAD_IDENTITY_PROVIDER` and `SERVICE_ACCOUNT_EMAIL` are automatically constructed in the workflow using the `PROJECT_ID` and `PROJECT_NUMBER`.*
 
 6. **Test the Setup:**
 
