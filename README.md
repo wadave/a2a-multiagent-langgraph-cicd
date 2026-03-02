@@ -38,7 +38,7 @@ A web application demonstrating the integration of Google's Agent2Agent (A2A) pr
 
 The application uses a multi-agent orchestrated architecture, leveraging Google’s Agent2Agent (A2A) protocol for secure communication and LangGraph for logic and routing. Authentication is enforced at every layer (indicated by padlock icons in the diagram).
 
-![architecture](assets/a2a-lg.jpeg)
+![architecture](assets/a2a-lg.png)
 
 **Component Breakdown & Data Flow:**
 
