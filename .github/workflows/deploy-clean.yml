@@ -73,11 +73,11 @@ jobs:
 
       - name: Install dependencies
         run: |
+          uv venv
+          source .venv/bin/activate
           ACCESS_TOKEN=$(gcloud auth print-access-token)
-          printf 'machine us-python.pkg.dev\nlogin oauth2accesstoken\npassword %s\n' "${ACCESS_TOKEN}" > ~/.netrc
-          chmod 600 ~/.netrc
           uv pip install -e . \
-            --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+            --extra-index-url https://oauth2accesstoken:${ACCESS_TOKEN}@us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Deploy A2A Agents
         id: deploy_agents
