@@ -1,9 +1,23 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import os
 import sys
+import tomllib
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Add src to path for packaging logic so that a2a_agents are importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import vertexai
@@ -23,6 +37,15 @@ from agent_state_manager import AgentStateManager
 
 logging.basicConfig(level=logging.INFO)
 
+
+def get_agent_requirements() -> list[str]:
+    """Read agent requirements from the [agents] optional-dependencies in pyproject.toml."""
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    with open(pyproject_path, "rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["optional-dependencies"]["agents"]
+
+
 def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, project_number, location, bucket_name, extra_env_vars, extra_packages):
     agent = A2aAgent(agent_card=agent_card, agent_executor_builder=executor_builder)
 
@@ -35,12 +58,10 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
     }
     env_vars.update(extra_env_vars)
 
-    # Vertex AI rejects empty string env var values
     env_vars = {k: v for k, v in env_vars.items() if v}
 
     logging.info(f"Deploying {agent_name} to Agent Engine...")
 
-    # Ensure "a2a_agents" is always included in extra_packages
     if "a2a_agents" not in extra_packages:
         extra_packages.append("a2a_agents")
 
@@ -50,26 +71,14 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
             "display_name": agent.agent_card.name,
             "description": agent.agent_card.description,
             "service_account": f"{project_number}-compute@developer.gserviceaccount.com",
-            "requirements": [
-                "a2a-sdk>=0.3.24",
-                "google-adk>=1.25.1",
-                "google-cloud-aiplatform[agent_engines,adk]>=1.130.0",
-                "pydantic>=2.0.0",
-                "cloudpickle==3.1.1",
-                "langchain-google-genai>=2.0.10",
-                "langchain-core>=0.3.76",
-                "langchain-google-vertexai>=2.1.2",
-                "langchain-mcp-adapters>=0.1.10",
-                "langgraph>=0.6.8",
-                "google-cloud-logging>=3.11.2"
-            ],
+            "requirements": get_agent_requirements(),
             "http_options": {
                 "base_url": f"https://{location}-aiplatform.googleapis.com",
                 "api_version": "v1beta1",
             },
             "staging_bucket": f"gs://{bucket_name}",
             "env_vars": env_vars,
-            "extra_packages": extra_packages
+            "extra_packages": extra_packages,
         }
     )
     logging.info(f"Deployed {agent_name} successfully: {remote_agent.api_resource.name}")
@@ -77,7 +86,6 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
 
 
 def main():
-    # Change current working directory to src so extra_packages path resolves correctly in Reasoning Engine
     src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
     os.chdir(src_dir)
     logging.info(f"Changed working directory to {src_dir}")
@@ -90,7 +98,6 @@ def main():
     google_genai_model = os.environ.get("GOOGLE_GENAI_MODEL", "gemini-2.5-flash")
     bucket_name = os.environ.get("BUCKET_NAME", f"{project_id}-bucket")
 
-    # Determine environment from branch or explicit env var
     environment = os.environ.get("ENVIRONMENT", "staging")
     state_manager = AgentStateManager(project_id, environment, location)
 
@@ -116,7 +123,6 @@ def main():
 
     deployed_agents = {}
 
-    # Deploy Cocktail Agent
     try:
         ct_agent_name = deploy_agent(
             client,
@@ -131,9 +137,9 @@ def main():
                 "CT_MCP_SERVER_URL": ct_mcp_url,
                 "PROJECT_NUMBER": project_number,
                 "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model
+                "GOOGLE_GENAI_MODEL": google_genai_model,
             },
-            ["a2a_agents"]
+            ["a2a_agents"],
         )
         deployed_agents["cocktail"] = ct_agent_name
         state_manager.update_agent("cocktail", ct_agent_name)
@@ -141,7 +147,6 @@ def main():
         logging.error(f"Failed to deploy Cocktail Agent: {e}")
         sys.exit(1)
 
-    # Deploy Weather Agent
     try:
         wea_agent_name = deploy_agent(
             client,
@@ -156,9 +161,9 @@ def main():
                 "WEA_MCP_SERVER_URL": wea_mcp_url,
                 "PROJECT_NUMBER": project_number,
                 "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model
+                "GOOGLE_GENAI_MODEL": google_genai_model,
             },
-            ["a2a_agents"]
+            ["a2a_agents"],
         )
         deployed_agents["weather"] = wea_agent_name
         state_manager.update_agent("weather", wea_agent_name)
@@ -166,12 +171,9 @@ def main():
         logging.error(f"Failed to deploy Weather Agent: {e}")
         sys.exit(1)
 
-    # Build URL endpoints for the agents based on their resource name
-    # Use A2A endpoints for LangGraph agents (not :query)
     ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
     wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}/a2a"
 
-    # Deploy Hosting Agent
     try:
         host_agent_name = deploy_agent(
             client,
@@ -187,9 +189,9 @@ def main():
                 "CT_AGENT_URL": ct_agent_url,
                 "PROJECT_NUMBER": project_number,
                 "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model
+                "GOOGLE_GENAI_MODEL": google_genai_model,
             },
-            ["a2a_agents"]
+            ["a2a_agents"],
         )
         deployed_agents["hosting"] = host_agent_name
         state_manager.update_agent("hosting", host_agent_name)
@@ -198,13 +200,13 @@ def main():
         sys.exit(1)
 
     logging.info("All agents deployed successfully.")
-    
-    # Export the Hosting Agent ID to GITHUB_OUTPUT for the Frontend Cloud Run deployment
+
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with open(github_output, "a") as f:
             f.write(f"AGENT_ENGINE_ID={host_agent_name}\n")
         logging.info("Exported AGENT_ENGINE_ID to GITHUB_OUTPUT.")
+
 
 if __name__ == "__main__":
     main()

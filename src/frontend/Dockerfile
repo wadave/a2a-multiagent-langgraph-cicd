@@ -6,4 +6,4 @@ WORKDIR /app
 COPY . /app
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv sync --no-install-project --index-url https://pypi.org/simple
-ENTRYPOINT ["python", "app.py"]
+ENTRYPOINT ["python", "main.py"]

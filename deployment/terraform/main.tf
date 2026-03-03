@@ -13,4 +13,3 @@ provider "google" {
   project = var.cicd_runner_project_id
   region  = var.region
 }
-# test trigger

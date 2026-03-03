@@ -11,8 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import sys
-from pathlib import Path
 
-# Add src/ to the Python path so tests can import MCP server modules.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+.PHONY: install test test-integration lint format local-up local-down
+
+install:
+	uv sync --all-extras
+
+test:
+	uv run pytest tests/unit/ -v
+
+test-integration:
+	uv run pytest tests/integration/ -v -m integration
+
+lint:
+	uv run ruff check src/ deployment/ tests/
+
+format:
+	uv run ruff format src/ deployment/ tests/
+
+local-up:
+	docker compose up --build
+
+local-down:
+	docker compose down

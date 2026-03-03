@@ -69,21 +69,6 @@ variable "ge_app_prod" {
   default     = ""
 }
 
-variable "cicd_sa_deployment_required_roles" {
-  description = "List of roles to assign to the CICD runner service account for the Staging and Prod projects."
-  type        = list(string)
-  default = [
-    "roles/iam.serviceAccountUser",
-    "roles/aiplatform.user",
-    "roles/discoveryengine.editor",
-    "roles/storage.admin",
-    "roles/secretmanager.secretAccessor",
-    "roles/secretmanager.viewer",
-    "roles/serviceusage.serviceUsageAdmin",
-    "roles/serviceusage.serviceUsageConsumer",
-    "roles/resourcemanager.projectIamAdmin"
-  ]
-}
 
 variable "agents_region" {
   description = "Region for Gemini Enterprise agents"

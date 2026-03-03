@@ -12,7 +12,6 @@ on:
 env:
   REGION: us-central1
   SERVICE_NAME: a2a-frontend-lg
-  PYTHON_VERSION: '3.12'
 
 jobs:
   deploy-clean-staging:
@@ -67,16 +66,18 @@ jobs:
             --project ${{ env.PROJECT_ID }}
 
       # Step 2: Deploy A2A Agents
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          python -m venv .venv
-          .venv/bin/pip install keyrings.google-artifactregistry-auth
-          .venv/bin/pip install -e . --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          uv venv
+          uv pip install keyrings.google-artifactregistry-auth \
+            --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          uv pip install -e . \
+            --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Deploy A2A Agents
         id: deploy_agents
@@ -90,7 +91,7 @@ jobs:
           PYTHONPATH: src
         run: |
           echo "Deploying A2A Agents (Cocktail, Weather, Hosting)..."
-          .venv/bin/python deployment/deploy_agents.py
+          uv run deployment/deploy_agents.py
 
       # Step 3: Deploy Frontend
       - name: Build Frontend Image
@@ -124,7 +125,8 @@ jobs:
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
             -var="prod_project_id=${{ env.PROJECT_ID }}" \
             -var="project_number=${{ env.PROJECT_NUMBER }}" \
-            -var="repository_name=a2a-multiagent-langgraph-cicd" \
+            -var="region=${{ env.REGION }}" \
+            -var="repository_name=${{ github.event.repository.name }}" \
             -var="repository_owner=${{ env.REPOSITORY_OWNER }}" \
             -var="agent_engine_id=${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}" \
             -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
