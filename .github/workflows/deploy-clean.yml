@@ -73,8 +73,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install keyrings.google-artifactregistry-auth \
-            --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          uv pip install keyrings.google-artifactregistry-auth
           uv pip install -e . \
             --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
