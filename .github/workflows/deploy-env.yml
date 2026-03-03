@@ -50,11 +50,14 @@ jobs:
               - 'pyproject.toml'
               - 'src/a2a_agents/**'
               - 'deployment/deploy_agents.py'
+              - 'deployment/agent_state_manager.py'
+              - '.github/workflows/deploy-env.yml'
             frontend:
               - 'src/frontend/**'
-              - '.github/workflows/deploy.yml'
+              - '.github/workflows/deploy-env.yml'
             terraform:
               - 'deployment/terraform/**'
+              - '.github/workflows/deploy-env.yml'
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -134,7 +137,7 @@ jobs:
           CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src
-        run: uv run deployment/deploy_agents.py
+        run: .venv/bin/python deployment/deploy_agents.py
 
       - name: Build Frontend Image
         if: steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all

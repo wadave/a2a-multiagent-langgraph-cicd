@@ -126,7 +126,7 @@ The system is designed with a "Security-First" approach and comprehensive observ
 │   │   ├── common/                     # Shared base classes
 │   │   ├── cocktail_agent/             # Cocktail specialist agent
 │   │   ├── weather_agent/              # Weather specialist agent
-│   │   └── hosting_agent/              # Orchestrator agent
+│   │   └── hosting_agent/             # Orchestrator agent
 │   ├── frontend/                       # Gradio web frontend
 │   └── mcp_servers/                    # MCP server implementations
 │       ├── cocktail_mcp_server/        # CocktailDB API wrapper
@@ -140,8 +140,13 @@ The system is designed with a "Security-First" approach and comprehensive observ
 │   ├── eval/                           # ADK evaluation cases
 │   └── load_test/                      # Load tests (Locust)
 ├── dev_notebooks/                      # Development & testing notebooks
-├── .github/workflows/deploy.yml        # CI/CD pipeline
-└── pyproject.toml                      # Project configuration
+├── .github/workflows/
+│   ├── deploy.yml                      # CI/CD pipeline (push-triggered)
+│   ├── deploy-env.yml                  # Reusable deployment workflow
+│   └── deploy-clean.yml               # Full from-scratch deployment
+├── docker-compose.yml                  # Local development stack
+├── Makefile                            # Developer shortcuts (test, lint, local-up)
+└── pyproject.toml                      # Project configuration & dependencies
 ```
 
 ## Core Components
@@ -512,7 +517,7 @@ Then visit `http://localhost:8080` in your browser.
 ### Install Dev Dependencies
 
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
 ### Unit Tests
@@ -520,7 +525,9 @@ pip install -e ".[dev]"
 Unit tests cover both MCP servers with mocked external dependencies — no running services required.
 
 ```bash
-pytest tests/unit/ -v
+make test
+# or directly:
+uv run pytest tests/unit/ -v
 ```
 
 ### Integration Tests
@@ -530,13 +537,15 @@ Integration tests require running MCP server instances. Set the server URLs via 
 ```bash
 export COCKTAIL_MCP_URL=http://localhost:8080/mcp
 export WEATHER_MCP_URL=http://localhost:8080/mcp
-pytest -m integration -v
+make test-integration
+# or directly:
+uv run pytest -m integration -v
 ```
 
 ### Run All Tests (excluding integration)
 
 ```bash
-pytest -m "not integration" -v
+uv run pytest -m "not integration" -v
 ```
 
 ### Evaluation

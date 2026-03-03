@@ -91,7 +91,7 @@ jobs:
           PYTHONPATH: src
         run: |
           echo "Deploying A2A Agents (Cocktail, Weather, Hosting)..."
-          uv run deployment/deploy_agents.py
+          .venv/bin/python deployment/deploy_agents.py
 
       # Step 3: Deploy Frontend
       - name: Build Frontend Image
