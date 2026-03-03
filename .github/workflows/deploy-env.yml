@@ -118,6 +118,7 @@ jobs:
         run: |
           uv pip install keyrings.google-artifactregistry-auth
           uv pip install -e . \
+            --keyring-provider subprocess \
             --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
