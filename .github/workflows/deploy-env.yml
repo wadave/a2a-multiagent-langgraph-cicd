@@ -116,9 +116,10 @@ jobs:
           steps.changes.outputs.weather_mcp == 'true' ||
           inputs.force_deploy_all
         run: |
-          uv pip install keyrings.google-artifactregistry-auth
+          ACCESS_TOKEN=$(gcloud auth print-access-token)
+          printf 'machine us-python.pkg.dev\nlogin oauth2accesstoken\npassword %s\n' "${ACCESS_TOKEN}" > ~/.netrc
+          chmod 600 ~/.netrc
           uv pip install -e . \
-            --keyring-provider subprocess \
             --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
