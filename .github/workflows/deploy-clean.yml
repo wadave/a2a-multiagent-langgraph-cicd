@@ -66,16 +66,17 @@ jobs:
             --project ${{ env.PROJECT_ID }}
 
       # Step 2: Deploy A2A Agents
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
         run: |
-          ACCESS_TOKEN=$(gcloud auth print-access-token)
-          uv pip install -e . \
-            --extra-index-url https://oauth2accesstoken:${ACCESS_TOKEN}@us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
+          python -m venv .venv
+          .venv/bin/pip install keyrings.google-artifactregistry-auth
+          .venv/bin/pip install -e . \
+            --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Deploy A2A Agents
         id: deploy_agents
