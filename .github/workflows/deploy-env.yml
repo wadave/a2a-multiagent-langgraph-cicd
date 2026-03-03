@@ -116,7 +116,7 @@ jobs:
           steps.changes.outputs.weather_mcp == 'true' ||
           inputs.force_deploy_all
         run: |
-          uv venv
+          uv venv --clear
           source .venv/bin/activate
           ACCESS_TOKEN=$(gcloud auth print-access-token)
           uv pip install -e . \

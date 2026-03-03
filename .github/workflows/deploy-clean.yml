@@ -73,8 +73,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv venv
-          source .venv/bin/activate
           ACCESS_TOKEN=$(gcloud auth print-access-token)
           uv pip install -e . \
             --extra-index-url https://oauth2accesstoken:${ACCESS_TOKEN}@us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
