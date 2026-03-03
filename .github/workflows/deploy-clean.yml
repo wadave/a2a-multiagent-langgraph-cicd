@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     permissions:
-      contents: 'read'
+      contents: 'write'
       id-token: 'write'
 
     env:
@@ -91,6 +91,20 @@ jobs:
         run: |
           echo "Deploying A2A Agents (Cocktail, Weather, Hosting)..."
           .venv/bin/python deployment/deploy_agents.py
+
+      - name: Register Agent Engine ID as GitHub Actions Variable
+        if: steps.deploy_agents.outputs.AGENT_ENGINE_ID != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AGENT_ENGINE_ID: ${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}
+        run: |
+          echo "Registering AGENT_ENGINE_ID as GitHub Actions staging environment variable..."
+          gh variable set AGENT_ENGINE_ID \
+            --body "${AGENT_ENGINE_ID}" \
+            --env staging \
+            --repo "${{ github.repository }}" \
+          && echo "✓ AGENT_ENGINE_ID registered: ${AGENT_ENGINE_ID}" \
+          || echo "⚠ Could not set variable automatically (check repo Actions permissions). Value: ${AGENT_ENGINE_ID}"
 
       # Step 3: Deploy Frontend
       - name: Build Frontend Image
