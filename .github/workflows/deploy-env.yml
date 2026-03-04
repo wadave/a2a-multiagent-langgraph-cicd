@@ -100,21 +100,13 @@ jobs:
             --project ${{ env.PROJECT_ID }}
 
       - name: Set up Python
-        if: |
-          steps.changes.outputs.agents == 'true' ||
-          steps.changes.outputs.cocktail_mcp == 'true' ||
-          steps.changes.outputs.weather_mcp == 'true' ||
-          inputs.force_deploy_all
+        if: steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install dependencies
-        if: |
-          steps.changes.outputs.agents == 'true' ||
-          steps.changes.outputs.cocktail_mcp == 'true' ||
-          steps.changes.outputs.weather_mcp == 'true' ||
-          inputs.force_deploy_all
+        if: steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         run: |
           python -m venv .venv
           .venv/bin/pip install keyrings.google-artifactregistry-auth
@@ -122,11 +114,7 @@ jobs:
             --extra-index-url https://us-python.pkg.dev/artifact-foundry-prod/ah-3p-staging-python/simple/
 
       - name: Run A2A Deploy Script
-        if: |
-          steps.changes.outputs.agents == 'true' ||
-          steps.changes.outputs.cocktail_mcp == 'true' ||
-          steps.changes.outputs.weather_mcp == 'true' ||
-          inputs.force_deploy_all
+        if: steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         id: deploy_agents
         env:
           PROJECT_ID: ${{ env.PROJECT_ID }}
