@@ -108,9 +108,9 @@ The system is designed with a "Security-First" approach and comprehensive observ
 
 #### Observability
 
-- **Standardized Cloud Logging**: The system uses an explicit Google Cloud Logging integration via a shared [logging_utils.py](file:///usr/local/google/home/wangdave/remote_ws/projects/a2a-multiagent-langgraph-cicd/src/a2a_agents/common/logging_utils.py) utility. This replaces legacy `print()` statements and ensures that logs are captured with proper severity levels and structured specifically for **Google Cloud Logging**.
-- **Centralized Monitoring**: All components (Frontend, Hosting Agent, and MCP Servers) leverage this utility to output logs that are automatically consolidated in the **Cloud Logging** dashboard. Each component uses a distinct `log_name` (e.g., `base-mcp-agent`, `frontend-app`) for easier filtering and monitoring.
-- **Environment Control**: Integration can be toggled via `USE_CLOUD_LOGGING` (defaults to `TRUE`). It gracefully falls back to standard Python console logging in local development environments.
+- **Structured Cloud Logging (Agents & Frontend)**: The Hosting Agent and Frontend use an explicit Google Cloud Logging integration via a shared [logging_utils.py](src/a2a_agents/common/logging_utils.py) utility. Logs are structured with proper severity levels and routed to **Google Cloud Logging** when `PROJECT_ID` is set; they fall back to standard Python console logging in local development.
+- **MCP Server Logging**: MCP servers use standard Python `logging` (stdout/stderr). Cloud Run automatically captures and forwards these to **Cloud Logging** without requiring the `google-cloud-logging` SDK.
+- **Centralized Monitoring**: All components output logs consolidated in the **Cloud Logging** dashboard. Agents use a distinct `log_name` (e.g., `base-mcp-agent`) for easier filtering; MCP server logs are filterable by Cloud Run service name.
 - **Execution Capture**: For specialized agents running on Agent Engine, execution logs are captured by the runtime environment and are accessible through the Vertex AI Logging interface.
 
 ### Application Screenshot
@@ -134,6 +134,9 @@ The system is designed with a "Security-First" approach and comprehensive observ
 ├── deployment/
 │   ├── deploy_agents.py                # Agent deployment script
 │   └── terraform/                      # Infrastructure as code
+├── docs/                               # Project documentation
+│   ├── software_design.md              # System architecture and design
+│   └── github-actions-wif-auth.md      # GitHub Actions auth guide
 ├── tests/
 │   ├── unit/                           # Unit tests (pytest)
 │   ├── integration/                    # Integration tests
@@ -177,7 +180,7 @@ The system is designed with a "Security-First" approach and comprehensive observ
 | ----------------------------------- | ------------------------------------- |
 | `get_forecast_by_city(city, state)` | Weather forecast by city and US state |
 | `get_forecast(latitude, longitude)` | Weather forecast by coordinates       |
-| `get_active_alerts_by_state(state)` | Active weather alerts by state code   |
+| `get_alerts(state)`                 | Active weather alerts by state code   |
 
 ## Example Usage
 
@@ -237,10 +240,10 @@ The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
 **Pipeline steps** (each runs only when its source files change):
 
 1. **Detect Changes** — uses `dorny/paths-filter` to identify which components changed
-2. **Deploy MCP Servers** — builds and deploys Cocktail/Weather MCP servers to Cloud Run via Cloud Build
-3. **Deploy Agents** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine
+2. **Deploy MCP Servers** — builds and deploys Cocktail/Weather MCP servers to Cloud Run via Cloud Build (triggered by changes in `src/mcp_servers/**`)
+3. **Deploy Agents** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine (triggered only by changes to agent code in `src/a2a_agents/**` or `deployment/deploy_agents.py`)
 4. **Deploy Frontend** — builds and deploys the Gradio frontend to Cloud Run via Cloud Build
-5. **Apply Terraform** — updates Cloud Run service configuration and infrastructure
+5. **Apply Terraform** — updates Cloud Run service configuration, IAM, and Gemini Enterprise registration
 
 #### Option 1: Automated CI/CD Setup (Recommended)
 
@@ -282,6 +285,7 @@ Use the `agent-starter-pack` CLI tool to automatically configure GitHub Actions 
      - `GE_APP_STAGING`
      - `OAUTH_CLIENT_ID_SECRET_NAME`
      - `AUTH_ID`
+     - `AGENT_ENGINE_ID` *(auto-populated by the `deploy-clean.yml` bootstrap after first agent deployment)*
 
 #### Option 2: Manual CI/CD Setup
 
@@ -532,11 +536,13 @@ uv run pytest tests/unit/ -v
 
 ### Integration Tests
 
-Integration tests require running MCP server instances. Set the server URLs via environment variables:
+Integration tests require running MCP server instances (e.g., via `make local-up`). Set the server URLs via environment variables:
 
 ```bash
-export COCKTAIL_MCP_URL=http://localhost:8080/mcp
-export WEATHER_MCP_URL=http://localhost:8080/mcp
+export CT_MCP_SERVER_URL=http://localhost:8081/mcp
+export WEA_MCP_SERVER_URL=http://localhost:8082/mcp
+export COCKTAIL_MCP_URL=http://localhost:8081/mcp
+export WEATHER_MCP_URL=http://localhost:8082/mcp
 make test-integration
 # or directly:
 uv run pytest -m integration -v
@@ -562,12 +568,10 @@ Load tests use [Locust](https://locust.io/). See [`tests/load_test/README.md`](t
 
 ### Development Notebooks
 
-Interactive development and testing notebooks are in `dev_notebooks/`:
+Interactive development and testing scripts are in `dev_notebooks/`:
 
-- `deploy_cocktail_langgraph_agent.ipynb` — Deploy cocktail agent
-- `deploy_weather_langgraph_agent.ipynb` — Deploy weather agent
-- `deploy_langgraph_host_agent.ipynb` — Deploy hosting agent
-- `Langgraph+A2A+AE.ipynb` — End-to-end LangGraph + A2A demo
+- `register_agent_to_gemini_enterprise.py` — Script to register agents to Gemini Enterprise
+- `register_staging_to_ge.py` — Script to register staging environment agents to Gemini Enterprise
 
 ## Disclaimer
 

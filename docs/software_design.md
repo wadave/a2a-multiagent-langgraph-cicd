@@ -67,7 +67,7 @@ graph TD
 - **Core Framework**: Python 3.12+, LangGraph.
 - **AI Models**: Gemini (Vertex AI).
 - **Infrastructure**: Google Cloud (Cloud Run, Secret Manager, Cloud Logging).
-- **Observability**: Google Cloud Logging SDK (`google-cloud-logging`).
+- **Observability**: Google Cloud Logging SDK (`google-cloud-logging`) for agents and frontend; Cloud Run native stdout capture for MCP servers.
 - **Deployment**: Terraform, GitHub Actions.
 
 ## Detailed Design
@@ -102,7 +102,7 @@ Specialized agents (Weather, Cocktail) inherited from `LanggraphBaseMCPAgent`. T
 
 ### Remote MCP Server Protocols
 
-Communication between agents and tool servers follows the standard MCP specification over HTTP/SSE.
+Communication between agents and tool servers follows the standard MCP specification over **Streamable HTTP** (`transport="streamable-http"`), served on the `/mcp` endpoint of each Cloud Run service.
 
 ## Security Considerations
 
@@ -122,8 +122,9 @@ Communication between agents and tool servers follows the standard MCP specifica
 ### Logging
 
 - **Standard Logging**: Python `logging` module used throughout the codebase.
-- **Explicit Cloud Logging**: The system integrates the `google-cloud-logging` SDK via a shared utility function `setup_cloud_logging`. This ensures logs are correctly structured and labeled within the Google Cloud console.
-- **Idempotent Initialization**: The logging system uses a state-aware initialization pattern to prevent duplicate log handlers and ensuring consistent output even in multi-instantiated agent environments.
+- **Explicit Cloud Logging (Agents & Frontend)**: The Hosting Agent and Frontend integrate the `google-cloud-logging` SDK via a shared `setup_cloud_logging` utility. Logs are correctly structured and labeled within the Google Cloud console when `PROJECT_ID` is set; they fall back to console logging locally.
+- **MCP Server Logging**: MCP servers use plain Python `logging` (no `google-cloud-logging` dependency). Cloud Run captures stdout/stderr and forwards logs to Cloud Logging automatically.
+- **Idempotent Initialization**: The logging system uses a state-aware initialization pattern to prevent duplicate log handlers, ensuring consistent output in multi-instantiated agent environments.
 - **Traceability**: `context_id` and `task_id` are propagated across agent calls for request tracing.
 
 ## Deployment Architecture
