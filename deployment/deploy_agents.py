@@ -102,13 +102,24 @@ def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, p
     existing_name = find_existing_agent(client, agent.agent_card.name)
     if existing_name:
         logging.info(f"Agent '{agent.agent_card.name}' already exists. Updating...")
-        remote_agent = client.agent_engines.update(
-            name=existing_name,
-            agent=agent,
-            config=config
-        )
-        logging.info(f"Updated {agent_name} successfully: {remote_agent.api_resource.name}")
-        return remote_agent.api_resource.name
+        try:
+            remote_agent = client.agent_engines.update(
+                name=existing_name,
+                agent=agent,
+                config=config
+            )
+            logging.info(f"Updated {agent_name} successfully: {remote_agent.api_resource.name}")
+            return remote_agent.api_resource.name
+        except Exception as e:
+            if "spec.package_spec" in str(e):
+                logging.warning(f"Legacy package_spec detected for {agent.agent_card.name}. Deleting and recreating...")
+                from google.genai.errors import ClientError
+                try:
+                    client.agent_engines.delete(name=existing_name, force=True)
+                except Exception as del_e:
+                    logging.warning(f"Error during legacy agent deletion: {del_e}")
+            else:
+                raise e
 
     remote_agent = client.agent_engines.create(
         agent=agent,
