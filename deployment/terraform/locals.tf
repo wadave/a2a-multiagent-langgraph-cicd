@@ -2,7 +2,6 @@ locals {
   project_name = "a2a-multiagent-lg-cicd"
 
   cicd_services = [
-    "cloudbuild.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "aiplatform.googleapis.com",
     "serviceusage.googleapis.com",

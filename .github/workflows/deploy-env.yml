@@ -26,7 +26,6 @@ jobs:
       REGION: us-central1
       PROJECT_ID: ${{ vars.PROJECT_ID }}
       PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
-      REPOSITORY_OWNER: ${{ vars.REPOSITORY_OWNER }}
       GE_APP_STAGING: ${{ vars.GE_APP_STAGING }}
       OAUTH_CLIENT_ID_SECRET_NAME: ${{ vars.OAUTH_CLIENT_ID_SECRET_NAME }}
       AUTH_ID: ${{ vars.AUTH_ID }}
@@ -85,19 +84,90 @@ jobs:
             echo "PERSISTED_AGENT_ENGINE_ID=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy Cocktail MCP Server
+      # ---- Build Container Images ----
+
+      - name: Build Cocktail MCP Image
         if: steps.changes.outputs.cocktail_mcp == 'true' || inputs.force_deploy_all
         run: |
           gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
-            --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg \
+            --tag gcr.io/${{ env.PROJECT_ID }}/cocktail-mcp-lg:latest \
             --project ${{ env.PROJECT_ID }}
+
+      - name: Build Weather MCP Image
+        if: steps.changes.outputs.weather_mcp == 'true' || inputs.force_deploy_all
+        run: |
+          gcloud builds submit ./src/mcp_servers/weather_mcp_server \
+            --tag gcr.io/${{ env.PROJECT_ID }}/weather-mcp-lg:latest \
+            --project ${{ env.PROJECT_ID }}
+
+      - name: Build Frontend Image
+        if: steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
+        run: |
+          gcloud builds submit ./src/frontend \
+            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest \
+            --project ${{ env.PROJECT_ID }}
+
+      # ---- Terraform Apply (infra) ----
+
+      - name: Setup Terraform
+        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Ensure Terraform state bucket exists
+        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        run: |
+          gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
+          gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
+            --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
+
+      - name: Terraform Init
+        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
+            -backend-config="prefix=a2a-multiagent-langgraph-cicd/${{ inputs.tf_prefix }}"
+        working-directory: deployment/terraform
+
+      - name: Terraform Apply
+        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        run: |
+          AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
+          if [ -z "$AGENT_ID" ]; then
+            AGENT_ID="unset"
+          fi
+
+          terraform apply -auto-approve \
+            -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
+            -var="staging_project_id=${{ env.PROJECT_ID }}" \
+            -var="prod_project_id=" \
+            -var="project_number=${{ env.PROJECT_NUMBER }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="agent_engine_id=${AGENT_ID}" \
+            -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
+            -var="auth_id=${{ env.AUTH_ID }}" \
+            -var="ge_app_staging=${{ env.GE_APP_STAGING }}" \
+            -var="agents_region=global"
+        working-directory: deployment/terraform
+
+      # ---- Deploy MCP Servers to Cloud Run ----
+
+      - name: Deploy Cocktail MCP Server
+        if: steps.changes.outputs.cocktail_mcp == 'true' || inputs.force_deploy_all
+        run: |
+          gcloud run deploy cocktail-mcp-lg-${{ inputs.tf_prefix }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/cocktail-mcp-lg:latest \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }}
 
       - name: Deploy Weather MCP Server
         if: steps.changes.outputs.weather_mcp == 'true' || inputs.force_deploy_all
         run: |
-          gcloud builds submit ./src/mcp_servers/weather_mcp_server \
-            --tag gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg \
-            --project ${{ env.PROJECT_ID }}
+          gcloud run deploy weather-mcp-lg-${{ inputs.tf_prefix }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/weather-mcp-lg:latest \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }}
+
+      # ---- Deploy Agents ----
 
       - name: Set up Python
         if: steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
@@ -121,85 +191,23 @@ jobs:
           PROJECT_NUMBER: ${{ env.PROJECT_NUMBER }}
           GOOGLE_CLOUD_REGION: ${{ env.REGION }}
           ENVIRONMENT: ${{ inputs.tf_prefix }}
-          CT_MCP_SERVER_URL: 'https://cocktail-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
-          WEA_MCP_SERVER_URL: 'https://weather-remote-mcp-server-lg-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
+          CT_MCP_SERVER_URL: 'https://cocktail-mcp-lg-${{ inputs.tf_prefix }}-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
+          WEA_MCP_SERVER_URL: 'https://weather-mcp-lg-${{ inputs.tf_prefix }}-${{ env.PROJECT_NUMBER }}.${{ env.REGION }}.run.app/mcp/'
           PYTHONPATH: src
         run: .venv/bin/python deployment/deploy_agents.py
 
-      - name: Build Frontend Image
-        if: steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
-        run: |
-          gcloud builds submit ./src/frontend \
-            --tag gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg \
-            --project ${{ env.PROJECT_ID }}
+      # ---- Deploy Frontend ----
 
-      - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Ensure Terraform state bucket exists
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
-        run: |
-          gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
-          gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
-            --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
-
-      - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
-        run: |
-          terraform init \
-            -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
-            -backend-config="prefix=a2a-multiagent-langgraph-cicd/${{ inputs.tf_prefix }}"
-        working-directory: deployment/terraform
-
-      - name: Terraform Apply
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
+      - name: Deploy Frontend
+        if: steps.changes.outputs.frontend == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         run: |
           AGENT_ID="${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
           if [ -z "$AGENT_ID" ]; then
             AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
           fi
 
-          if [ -z "$AGENT_ID" ] || [ "$AGENT_ID" == "unset" ]; then
-            echo "ERROR: No valid agent ID available. Run the deploy-clean workflow first."
-            exit 1
-          fi
-
-          terraform apply -auto-approve \
-            -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
-            -var="staging_project_id=${{ env.PROJECT_ID }}" \
-            -var="prod_project_id=${{ env.PROJECT_ID }}" \
-            -var="project_number=${{ env.PROJECT_NUMBER }}" \
-            -var="region=${{ env.REGION }}" \
-            -var="repository_name=${{ github.event.repository.name }}" \
-            -var="repository_owner=${{ env.REPOSITORY_OWNER }}" \
-            -var="agent_engine_id=${AGENT_ID}" \
-            -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
-            -var="auth_id=${{ env.AUTH_ID }}" \
-            -var="ge_app_staging=${{ env.GE_APP_STAGING }}" \
-            -var="agents_region=global"
-        working-directory: deployment/terraform
-
-      - name: Force Cocktail MCP Server Update
-        if: steps.changes.outputs.cocktail_mcp == 'true' || inputs.force_deploy_all
-        run: |
-          gcloud run services update cocktail-remote-mcp-server-lg \
+          gcloud run deploy a2a-frontend-lg-${{ inputs.tf_prefix }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest \
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
-            --image=gcr.io/${{ env.PROJECT_ID }}/cocktail-remote-mcp-server-lg:latest
-
-      - name: Force Weather MCP Server Update
-        if: steps.changes.outputs.weather_mcp == 'true' || inputs.force_deploy_all
-        run: |
-          gcloud run services update weather-remote-mcp-server-lg \
-            --region=${{ env.REGION }} \
-            --project=${{ env.PROJECT_ID }} \
-            --image=gcr.io/${{ env.PROJECT_ID }}/weather-remote-mcp-server-lg:latest
-
-      - name: Force Frontend Update
-        if: steps.changes.outputs.frontend == 'true' || inputs.force_deploy_all
-        run: |
-          gcloud run services update a2a-frontend-lg \
-            --region=${{ env.REGION }} \
-            --project=${{ env.PROJECT_ID }} \
-            --image=gcr.io/${{ env.PROJECT_ID }}/a2a-frontend-lg:latest
+            --set-env-vars "PROJECT_ID=${{ env.PROJECT_ID }},PROJECT_NUMBER=${{ env.PROJECT_NUMBER }},AGENT_ENGINE_ID=${AGENT_ID},GOOGLE_CLOUD_LOCATION=${{ env.REGION }}"

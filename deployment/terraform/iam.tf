@@ -4,10 +4,6 @@ data "google_project" "projects" {
   project_id = each.value
 }
 
-data "google_project" "cicd_project" {
-  project_id = var.cicd_runner_project_id
-}
-
 # 1. Assign roles for the CICD project
 resource "google_project_iam_member" "cicd_project_roles" {
   for_each = toset(var.cicd_roles)
@@ -54,18 +50,11 @@ resource "google_service_account_iam_member" "cicd_run_invoker_token_creator" {
   member             = "serviceAccount:${google_service_account.cicd_runner_sa.email}"
 }
 
-# Allow the CICD SA to impersonate itself for trigger creation
+# Allow the CICD SA to impersonate itself
 resource "google_service_account_iam_member" "cicd_run_invoker_account_user" {
   service_account_id = google_service_account.cicd_runner_sa.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.cicd_runner_sa.email}"
-}
-
-# Allow Cloud Build P4SA to impersonate the CICD SA for V2 trigger execution
-resource "google_service_account_iam_member" "cloudbuild_p4sa_impersonate_cicd" {
-  service_account_id = google_service_account.cicd_runner_sa.name
-  role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:service-${data.google_project.cicd_project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
 # Allow CICD SA to impersonate app service accounts for deployment

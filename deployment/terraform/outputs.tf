@@ -28,3 +28,8 @@ output "app_sa_emails" {
   description = "Emails of the application service accounts"
   value       = { for k, v in google_service_account.app_sa : k => v.email }
 }
+
+output "agent_engine_ids" {
+  description = "Resource names of the Agent Engine shells"
+  value       = { for k, v in google_vertex_ai_reasoning_engine.agent : k => v.name }
+}

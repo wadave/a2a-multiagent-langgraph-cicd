@@ -2,21 +2,12 @@
 # Copy this file to terraform.tfvars and fill in your values.
 #   cp terraform.tfvars.example terraform.tfvars
 # terraform.tfvars is gitignored — never commit it.
-#
-# Terraform auto-loads terraform.tfvars, so you can then run:
-#   ./deploy.sh staging plan
-#   ./deploy.sh staging apply
 
 # ---- GCP Project Configuration ----
 cicd_runner_project_id = "your-cicd-project-id"
 staging_project_id     = "your-staging-project-id"
 prod_project_id        = ""  # Leave empty if no prod yet
 region                 = "us-central1"
-
-# ---- GitHub / Cloud Build V2 Configuration ----
-repository_name      = "a2a-multiagent-langgraph-cicd"
-repository_owner     = "your-github-org-or-user"
-host_connection_name = "your-existing-cb-v2-connection-name"
 
 # ---- Gemini Enterprise Configuration ----
 ge_app_staging = ""   # Your staging GE App ID
