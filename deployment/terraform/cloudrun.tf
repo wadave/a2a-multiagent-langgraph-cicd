@@ -1,15 +1,24 @@
+# Cloud Run Service shells - Terraform creates these, CI/CD updates the image via gcloud
+
 # Cloud Run Service for Cocktail MCP Server
 resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
+  for_each            = local.deploy_project_ids
   deletion_protection = false
-  name     = "cocktail-remote-mcp-server-lg"
-  location = var.region
-  project  = var.cicd_runner_project_id
+  name                = "cocktail-mcp-lg-${each.key}"
+  location            = var.region
+  project             = each.value
 
   template {
-    timeout = "300s"
+    timeout         = "300s"
+    service_account = google_service_account.app_sa[each.key].email
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/cocktail-remote-mcp-server-lg:latest"
-      
+
+      env {
+        name  = "PROJECT_ID"
+        value = each.value
+      }
+
       resources {
         limits = {
           cpu    = "1000m"
@@ -22,21 +31,36 @@ resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
   traffic {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
+  }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image,
+      client,
+      client_version,
+    ]
   }
 }
 
 # Cloud Run Service for Weather MCP Server
 resource "google_cloud_run_v2_service" "weather_mcp_server" {
+  for_each            = local.deploy_project_ids
   deletion_protection = false
-  name     = "weather-remote-mcp-server-lg"
-  location = var.region
-  project  = var.cicd_runner_project_id
+  name                = "weather-mcp-lg-${each.key}"
+  location            = var.region
+  project             = each.value
 
   template {
-    timeout = "300s"
+    timeout         = "300s"
+    service_account = google_service_account.app_sa[each.key].email
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/weather-remote-mcp-server-lg:latest"
-      
+
+      env {
+        name  = "PROJECT_ID"
+        value = each.value
+      }
+
       resources {
         limits = {
           cpu    = "1000m"
@@ -50,28 +74,38 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
   }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image,
+      client,
+      client_version,
+    ]
+  }
 }
 
 # Cloud Run Service for the A2A Frontend
 resource "google_cloud_run_v2_service" "a2a_frontend" {
+  for_each            = local.deploy_project_ids
   deletion_protection = false
-  name     = "a2a-frontend-lg"
-  location = var.region
-  project  = var.cicd_runner_project_id
+  name                = "a2a-frontend-lg-${each.key}"
+  location            = var.region
+  project             = each.value
 
   template {
-    timeout = "300s"
+    timeout         = "300s"
+    service_account = google_service_account.app_sa[each.key].email
     containers {
       image = "gcr.io/${var.cicd_runner_project_id}/a2a-frontend-lg:latest"
-      
+
       env {
         name  = "PROJECT_ID"
-        value = var.cicd_runner_project_id
+        value = each.value
       }
 
       env {
         name  = "PROJECT_NUMBER"
-        value = var.project_number
+        value = data.google_project.projects[each.key].number
       }
 
       env {
@@ -81,15 +115,13 @@ resource "google_cloud_run_v2_service" "a2a_frontend" {
 
       env {
         name  = "AGENT_ENGINE_ID"
-        # This will be injected dynamically if deploying agents outside Terraform,
-        # or replaced by a known value if deployed within Terraform
         value = var.agent_engine_id
       }
 
       resources {
         limits = {
           cpu    = "1000m"
-          memory = "1024Mi"
+          memory = "2Gi"
         }
       }
     }
@@ -99,15 +131,24 @@ resource "google_cloud_run_v2_service" "a2a_frontend" {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
   }
+
+  lifecycle {
+    ignore_changes = [
+      template[0].containers[0].image,
+      template[0].containers[0].env,
+      client,
+      client_version,
+    ]
+  }
 }
 
 # IAM policy to allow public access to frontend
 resource "google_cloud_run_v2_service_iam_member" "frontend_public_access" {
-  name     = google_cloud_run_v2_service.a2a_frontend.name
-  location = google_cloud_run_v2_service.a2a_frontend.location
-  project  = google_cloud_run_v2_service.a2a_frontend.project
+  for_each = local.deploy_project_ids
+
+  name     = google_cloud_run_v2_service.a2a_frontend[each.key].name
+  location = google_cloud_run_v2_service.a2a_frontend[each.key].location
+  project  = google_cloud_run_v2_service.a2a_frontend[each.key].project
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
-
-

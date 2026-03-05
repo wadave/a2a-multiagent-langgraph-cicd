@@ -1,0 +1,155 @@
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine'
+    id: 'deploy-cocktail-mcp'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        set -e
+        apk add --no-cache docker-cli
+        IMAGE="${_REGION}-docker.pkg.dev/${PROJECT_ID}/a2a-multiagent-lg-cicd/cocktail-mcp:${COMMIT_SHA}"
+
+        docker build -t $$IMAGE /workspace/src/mcp_servers/cocktail_mcp_server
+        docker push $$IMAGE
+        gcloud run deploy cocktail-mcp-lg-staging \
+          --image $$IMAGE \
+          --project ${_STAGING_PROJECT_ID} \
+          --region ${_REGION} \
+          --service-account ${_APP_SERVICE_ACCOUNT_STAGING} \
+          --no-allow-unauthenticated \
+          --set-env-vars "PROJECT_ID=${_STAGING_PROJECT_ID}"
+
+  - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine'
+    id: 'deploy-weather-mcp'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        set -e
+        apk add --no-cache docker-cli
+        IMAGE="${_REGION}-docker.pkg.dev/${PROJECT_ID}/a2a-multiagent-lg-cicd/weather-mcp:${COMMIT_SHA}"
+
+        docker build -t $$IMAGE /workspace/src/mcp_servers/weather_mcp_server
+        docker push $$IMAGE
+        gcloud run deploy weather-mcp-lg-staging \
+          --image $$IMAGE \
+          --project ${_STAGING_PROJECT_ID} \
+          --region ${_REGION} \
+          --service-account ${_APP_SERVICE_ACCOUNT_STAGING} \
+          --no-allow-unauthenticated \
+          --set-env-vars "PROJECT_ID=${_STAGING_PROJECT_ID}"
+
+  - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        set -e
+        # Get Cloud Run URLs and append /mcp/ path (with trailing slash) for FastMCP servers
+        CT_URL=$$(gcloud run services describe cocktail-mcp-lg-staging --project ${_STAGING_PROJECT_ID} --region ${_REGION} --format 'value(status.url)' 2>&1)
+        if [ -z "$$CT_URL" ] || echo "$$CT_URL" | grep -q "ERROR\|NOT_FOUND"; then
+          echo "ERROR: Cocktail MCP service not found or failed to deploy"
+          exit 1
+        fi
+        echo "$${CT_URL}/mcp/" > /workspace/cocktail_url.txt
+
+        WEA_URL=$$(gcloud run services describe weather-mcp-lg-staging --project ${_STAGING_PROJECT_ID} --region ${_REGION} --format 'value(status.url)' 2>&1)
+        if [ -z "$$WEA_URL" ] || echo "$$WEA_URL" | grep -q "ERROR\|NOT_FOUND"; then
+          echo "ERROR: Weather MCP service not found or failed to deploy"
+          exit 1
+        fi
+        echo "$${WEA_URL}/mcp/" > /workspace/weather_url.txt
+
+        echo "Cocktail MCP URL: $$(cat /workspace/cocktail_url.txt)"
+        echo "Weather MCP URL: $$(cat /workspace/weather_url.txt)"
+    id: 'get-mcp-urls'
+    waitFor: ['deploy-cocktail-mcp', 'deploy-weather-mcp']
+
+  - name: "python:3.12-slim"
+    id: install-dependencies
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        set -e
+        pip install uv --user && uv sync --locked
+    env:
+      - 'PATH=/usr/local/bin:/usr/bin:~/.local/bin'
+    waitFor: ['get-mcp-urls']
+
+  - name: "python:3.12-slim"
+    id: deploy-agents
+    entrypoint: /bin/bash
+    args:
+      - "-c"
+      - |
+        set -e
+        export CT_MCP_SERVER_URL=$$(cat /workspace/cocktail_url.txt)
+        export WEA_MCP_SERVER_URL=$$(cat /workspace/weather_url.txt)
+        export PROJECT_ID="${_STAGING_PROJECT_ID}"
+        export PROJECT_NUMBER="${_PROJECT_NUMBER}"
+        export GOOGLE_CLOUD_REGION="${_REGION}"
+        export APP_SERVICE_ACCOUNT="${_APP_SERVICE_ACCOUNT_STAGING}"
+        export ENVIRONMENT="staging"
+        export BUCKET_NAME="${_STAGING_PROJECT_ID}-bucket"
+        export HOSTING_AGENT_ID_FILE="/workspace/hosting_agent_id.txt"
+
+        uv run python deployment/deploy_agents.py
+    env:
+      - 'PATH=/usr/local/bin:/usr/bin:~/.local/bin'
+      - 'PYTHONPATH=src'
+    waitFor: ['install-dependencies']
+
+  - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine'
+    id: 'deploy-frontend'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        set -e
+        apk add --no-cache docker-cli
+        IMAGE="${_REGION}-docker.pkg.dev/${PROJECT_ID}/a2a-multiagent-lg-cicd/frontend:${COMMIT_SHA}"
+
+        if [ ! -f /workspace/hosting_agent_id.txt ]; then
+          echo "ERROR: hosting_agent_id.txt not found!"
+          exit 1
+        fi
+
+        HOSTING_AGENT_RESOURCE=$$(cat /workspace/hosting_agent_id.txt)
+        echo "Hosting Agent Resource: $$HOSTING_AGENT_RESOURCE"
+
+        AGENT_ENGINE_ID=$$(echo "$$HOSTING_AGENT_RESOURCE" | awk -F'/' '{print $$NF}')
+
+        if [ -z "$$AGENT_ENGINE_ID" ]; then
+          echo "ERROR: Failed to extract AGENT_ENGINE_ID from: $$HOSTING_AGENT_RESOURCE"
+          exit 1
+        fi
+
+        echo "Extracted AGENT_ENGINE_ID: $$AGENT_ENGINE_ID"
+
+        docker build -t $$IMAGE /workspace/src/frontend
+        docker push $$IMAGE
+        gcloud run deploy a2a-frontend-lg-staging \
+          --image $$IMAGE \
+          --project ${_STAGING_PROJECT_ID} \
+          --region ${_REGION} \
+          --service-account ${_APP_SERVICE_ACCOUNT_STAGING} \
+          --allow-unauthenticated \
+          --memory 2Gi \
+          --timeout 600 \
+          --set-env-vars "PROJECT_ID=${_STAGING_PROJECT_ID},PROJECT_NUMBER=${_PROJECT_NUMBER},AGENT_ENGINE_ID=$${AGENT_ENGINE_ID},GOOGLE_CLOUD_LOCATION=${_REGION}"
+    waitFor: ['deploy-agents']
+
+# Substitutions are provided by Terraform - DO NOT hard-code values here
+# These are set in deployment/terraform/build_triggers.tf
+substitutions:
+  _STAGING_PROJECT_ID: ''
+  _PROJECT_NUMBER: ''
+  _REGION: ''
+  _APP_SERVICE_ACCOUNT_STAGING: ''
+  _GE_APP_STAGING: ''
+
+logsBucket: gs://${PROJECT_ID}-a2a-multiagent-lg-cicd-logs/build-logs
+options:
+  substitutionOption: ALLOW_LOOSE
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET

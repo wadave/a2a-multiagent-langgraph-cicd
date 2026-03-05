@@ -10,6 +10,7 @@ terraform {
 }
 
 provider "google" {
-  project = var.cicd_runner_project_id
-  region  = var.region
+  project               = var.cicd_runner_project_id
+  region                = var.region
+  user_project_override = true
 }

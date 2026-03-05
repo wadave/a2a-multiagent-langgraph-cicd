@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: install test test-integration lint format local-up local-down
+.PHONY: install test test-integration lint format local-up local-down \
+        terraform-plan terraform-apply terraform-destroy
 
 install:
 	uv sync --all-extras
@@ -34,3 +35,19 @@ local-up:
 
 local-down:
 	docker compose down
+
+# Terraform infrastructure commands
+terraform-plan:
+	cd deployment/terraform && ./deploy.sh staging plan
+
+terraform-apply:
+	cd deployment/terraform && ./deploy.sh staging apply
+
+terraform-destroy:
+	cd deployment/terraform && ./deploy.sh staging destroy
+
+terraform-plan-prod:
+	cd deployment/terraform && ./deploy.sh prod plan
+
+terraform-apply-prod:
+	cd deployment/terraform && ./deploy.sh prod apply

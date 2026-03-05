@@ -1,6 +1,6 @@
-output "frontend_url" {
-  description = "URL of the deployed frontend service"
-  value       = google_cloud_run_v2_service.a2a_frontend.uri
+output "frontend_urls" {
+  description = "URLs of the deployed frontend services"
+  value       = { for k, v in google_cloud_run_v2_service.a2a_frontend : k => v.uri }
 }
 
 output "agent_engine_id_used" {
@@ -9,12 +9,22 @@ output "agent_engine_id_used" {
   sensitive   = false
 }
 
-output "cocktail_mcp_url" {
-  description = "URL of the Cocktail MCP server"
-  value       = google_cloud_run_v2_service.cocktail_mcp_server.uri
+output "cocktail_mcp_urls" {
+  description = "URLs of the Cocktail MCP servers"
+  value       = { for k, v in google_cloud_run_v2_service.cocktail_mcp_server : k => v.uri }
 }
 
-output "weather_mcp_url" {
-  description = "URL of the Weather MCP server"
-  value       = google_cloud_run_v2_service.weather_mcp_server.uri
+output "weather_mcp_urls" {
+  description = "URLs of the Weather MCP servers"
+  value       = { for k, v in google_cloud_run_v2_service.weather_mcp_server : k => v.uri }
+}
+
+output "cicd_runner_sa_email" {
+  description = "Email of the CICD runner service account"
+  value       = google_service_account.cicd_runner_sa.email
+}
+
+output "app_sa_emails" {
+  description = "Emails of the application service accounts"
+  value       = { for k, v in google_service_account.app_sa : k => v.email }
 }

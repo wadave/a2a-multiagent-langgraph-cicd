@@ -234,7 +234,7 @@ engines.json
 credentials.json
 token.json
 client_secret.json
-.secrets.baseline
+#.secrets.baseline
 
 # Agent / AI Configuration
 .claude/
@@ -250,7 +250,7 @@ tmp*
 /tmp
 
 # Configuration to ignore
-.pre-commit-config.yaml
+#.pre-commit-config.yaml
 .requirements.txt
 
 # Starter pack specific

@@ -201,6 +201,14 @@ def main():
 
     logging.info("All agents deployed successfully.")
 
+    # Write hosting agent ID to file for Cloud Build pipeline
+    hosting_agent_id_file = os.environ.get("HOSTING_AGENT_ID_FILE")
+    if hosting_agent_id_file:
+        with open(hosting_agent_id_file, "w") as f:
+            f.write(host_agent_name)
+        logging.info(f"Wrote hosting agent ID to {hosting_agent_id_file}")
+
+    # Also export to GITHUB_OUTPUT for backward compatibility
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with open(github_output, "a") as f:
