@@ -8,6 +8,7 @@ locals {
     "serviceusage.googleapis.com",
     "secretmanager.googleapis.com",
     "artifactregistry.googleapis.com",
+    "iam.googleapis.com",
   ]
 
   deploy_project_services = [

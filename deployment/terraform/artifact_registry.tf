@@ -6,5 +6,5 @@ resource "google_artifact_registry_repository" "docker_repo" {
   format        = "DOCKER"
   description   = "Docker images for ${local.project_name}"
 
-  depends_on = [google_project_service.cicd_services]
+  depends_on = [google_project_service.cicd_services["artifactregistry.googleapis.com"]]
 }

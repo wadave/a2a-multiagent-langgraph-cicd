@@ -35,8 +35,7 @@ resource "google_cloudbuild_trigger" "pr_checks" {
   ]
   include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
   depends_on = [
-    google_project_service.cicd_services,
-    google_project_service.deploy_project_services,
+    google_project_service.cicd_services["cloudbuild.googleapis.com"],
   ]
 }
 
@@ -75,8 +74,7 @@ resource "google_cloudbuild_trigger" "cd_pipeline" {
     _GE_APP_STAGING              = var.ge_app_staging
   }
   depends_on = [
-    google_project_service.cicd_services,
-    google_project_service.deploy_project_services,
+    google_project_service.cicd_services["cloudbuild.googleapis.com"],
   ]
 }
 
@@ -108,7 +106,6 @@ resource "google_cloudbuild_trigger" "deploy_to_prod_pipeline" {
     _AUTH_ID                  = var.auth_id
   }
   depends_on = [
-    google_project_service.cicd_services,
-    google_project_service.deploy_project_services,
+    google_project_service.cicd_services["cloudbuild.googleapis.com"],
   ]
 }

@@ -1,7 +1,9 @@
+# Use for_each (not count) so all APIs enable in parallel
 resource "google_project_service" "cicd_services" {
-  count              = length(local.cicd_services)
+  for_each = toset(local.cicd_services)
+
   project            = var.cicd_runner_project_id
-  service            = local.cicd_services[count.index]
+  service            = each.value
   disable_on_destroy = false
 }
 
@@ -15,11 +17,5 @@ resource "google_project_service" "deploy_project_services" {
   }
   project            = each.value.project
   service            = each.value.service
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "cicd_cloud_resource_manager_api" {
-  project            = var.cicd_runner_project_id
-  service            = "cloudresourcemanager.googleapis.com"
   disable_on_destroy = false
 }

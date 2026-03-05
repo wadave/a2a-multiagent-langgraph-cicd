@@ -1,4 +1,6 @@
-# Cloud Run Service shells - Terraform creates these, CI/CD updates the image via gcloud
+# Hybrid Provisioning: Terraform creates Cloud Run shells with a placeholder
+# image. CI/CD then deploys the real image via `gcloud run deploy`, which
+# updates the service in-place without Terraform interfering.
 
 # Cloud Run Service for Cocktail MCP Server
 resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
@@ -12,12 +14,7 @@ resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
     timeout         = "300s"
     service_account = google_service_account.app_sa[each.key].email
     containers {
-      image = "gcr.io/${var.cicd_runner_project_id}/cocktail-remote-mcp-server-lg:latest"
-
-      env {
-        name  = "PROJECT_ID"
-        value = each.value
-      }
+      image = "us-docker.pkg.dev/cloudrun/container/hello"
 
       resources {
         limits = {
@@ -36,6 +33,7 @@ resource "google_cloud_run_v2_service" "cocktail_mcp_server" {
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,
+      template[0].containers[0].env,
       client,
       client_version,
     ]
@@ -54,12 +52,7 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
     timeout         = "300s"
     service_account = google_service_account.app_sa[each.key].email
     containers {
-      image = "gcr.io/${var.cicd_runner_project_id}/weather-remote-mcp-server-lg:latest"
-
-      env {
-        name  = "PROJECT_ID"
-        value = each.value
-      }
+      image = "us-docker.pkg.dev/cloudrun/container/hello"
 
       resources {
         limits = {
@@ -78,6 +71,7 @@ resource "google_cloud_run_v2_service" "weather_mcp_server" {
   lifecycle {
     ignore_changes = [
       template[0].containers[0].image,
+      template[0].containers[0].env,
       client,
       client_version,
     ]
@@ -96,27 +90,7 @@ resource "google_cloud_run_v2_service" "a2a_frontend" {
     timeout         = "300s"
     service_account = google_service_account.app_sa[each.key].email
     containers {
-      image = "gcr.io/${var.cicd_runner_project_id}/a2a-frontend-lg:latest"
-
-      env {
-        name  = "PROJECT_ID"
-        value = each.value
-      }
-
-      env {
-        name  = "PROJECT_NUMBER"
-        value = data.google_project.projects[each.key].number
-      }
-
-      env {
-        name  = "GOOGLE_CLOUD_LOCATION"
-        value = var.region
-      }
-
-      env {
-        name  = "AGENT_ENGINE_ID"
-        value = var.agent_engine_id
-      }
+      image = "us-docker.pkg.dev/cloudrun/container/hello"
 
       resources {
         limits = {
