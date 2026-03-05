@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 import sys
+import traceback
 import tomllib
 import logging
 from pathlib import Path
@@ -191,6 +192,7 @@ def main():
         state_manager.update_agent("cocktail", ct_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Cocktail Agent: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
     try:
@@ -215,6 +217,7 @@ def main():
         state_manager.update_agent("weather", wea_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Weather Agent: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
     ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
@@ -243,6 +246,7 @@ def main():
         state_manager.update_agent("hosting", host_agent_name)
     except Exception as e:
         logging.error(f"Failed to deploy Hosting Agent: {e}")
+        traceback.print_exc()
         sys.exit(1)
 
     logging.info("All agents deployed successfully.")
@@ -263,4 +267,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        logging.shutdown()
