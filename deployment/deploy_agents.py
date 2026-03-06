@@ -27,12 +27,14 @@ Environment variables:
     GOOGLE_GENAI_MODEL: Model name (default: gemini-2.5-flash)
 """
 
+import importlib
 import logging
 import os
 import sys
 import tomllib
 import traceback
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 
@@ -40,10 +42,26 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../s
 
 import vertexai
 from agent_state_manager import AgentStateManager
+from vertexai._genai import _agent_engines_utils
 from vertexai._genai.types import AgentEngineConfig
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def generate_class_methods_from_agent(agent_instance: Any) -> list[dict[str, Any]]:
+    """Generate method specifications with schemas from agent's register_operations()."""
+    registered_operations = _agent_engines_utils._get_registered_operations(
+        agent=agent_instance
+    )
+    class_methods_spec = _agent_engines_utils._generate_class_methods_spec_or_raise(
+        agent=agent_instance,
+        operations=registered_operations,
+    )
+    class_methods_list = [
+        _agent_engines_utils._to_dict(method_spec) for method_spec in class_methods_spec
+    ]
+    return class_methods_list
 
 
 def get_agent_requirements() -> list[str]:
@@ -82,12 +100,18 @@ def deploy_agent(
 ):
     """Deploy or update an agent using AgentEngineConfig (source_code_spec compatible)."""
 
+    logger.info(f"Importing {entrypoint_module}.{entrypoint_object}")
+    module = importlib.import_module(entrypoint_module)
+    agent_instance = getattr(module, entrypoint_object)
+    class_methods_list = generate_class_methods_from_agent(agent_instance)
+
     config = AgentEngineConfig(
         display_name=display_name,
         description=description,
         source_packages=["./a2a_agents"],
         entrypoint_module=entrypoint_module,
         entrypoint_object=entrypoint_object,
+        class_methods=class_methods_list,
         requirements_file=requirements_file,
         env_vars={k: v for k, v in env_vars.items() if v},
         service_account=service_account,
