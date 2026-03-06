@@ -31,9 +31,7 @@ load_dotenv()
 class HostingAgentExecutor(LanggraphBaseOrchestratorAgentExecutor):
     """Agent Executor that bridges A2A protocol with LangGraph agent."""
 
-    async def create_orchestrator_agent(
-        self, httpx_client: httpx.AsyncClient
-    ) -> "CompiledGraph":
+    async def create_orchestrator_agent(self, httpx_client: httpx.AsyncClient) -> "CompiledGraph":
         """Create and initialize the hosting agent.
 
         Args:

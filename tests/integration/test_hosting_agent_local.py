@@ -13,29 +13,35 @@
 # limitations under the License.
 # Author: Dave Wang
 
+import asyncio
+import json
 import os
 import sys
-import json
-import logging
-import asyncio
-from typing import Any, Callable, Awaitable
-from starlette.requests import Request
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 from dotenv import load_dotenv
+from starlette.requests import Request
 
 # Add src to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
+from vertexai.preview.reasoning_engines import A2aAgent
+
 from a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card
 from a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
-from vertexai.preview.reasoning_engines import A2aAgent
+
 
 # Helpers from notebook
 def receive_wrapper(data: dict) -> Callable[[], Awaitable[dict]]:
     """Creates a mock ASGI receive callable for testing."""
+
     async def receive():
         byte_data = json.dumps(data).encode("utf-8")
         return {"type": "http.request", "body": byte_data, "more_body": False}
+
     return receive
+
 
 def build_post_request(
     data: dict[str, Any] | None = None, path_params: dict[str, str] | None = None
@@ -51,6 +57,7 @@ def build_post_request(
         scope["path_params"] = path_params
     receiver = receive_wrapper(data)
     return Request(scope, receiver)
+
 
 def build_get_request(path_params: dict[str, str] | None = None) -> Request:
     """Builds a mock Starlette Request object for a GET request."""
@@ -68,6 +75,7 @@ def build_get_request(path_params: dict[str, str] | None = None) -> Request:
 
     return Request(scope, receive)
 
+
 async def test_hosting_agent_local():
     print("--- Testing Hosting Agent Locally ---")
     load_dotenv()
@@ -83,6 +91,7 @@ async def test_hosting_agent_local():
 
     # Initialize Vertex AI
     import vertexai
+
     vertexai.init(project=os.environ.get("PROJECT_ID"), location="us-central1")
 
     # 1. Initialize Agent
@@ -98,9 +107,7 @@ async def test_hosting_agent_local():
     # 2. Get Agent Card
     print("Fetching agent card...")
     request = build_get_request(None)
-    response = await a2a_agent.handle_authenticated_agent_card(
-        request=request, context=None
-    )
+    response = await a2a_agent.handle_authenticated_agent_card(request=request, context=None)
     if isinstance(response, dict):
         print(f"Agent Name: {response.get('name', 'N/A')}")
         print(f"Skills: {len(response.get('skills', []))}")
@@ -132,7 +139,7 @@ async def test_hosting_agent_local():
         response2 = await a2a_agent.on_get_task(request=request, context=None)
 
         status = response2["status"]["state"]
-        print(f"Poll {i+1}: {status}")
+        print(f"Poll {i + 1}: {status}")
 
         if status == "TASK_STATE_COMPLETED":
             for artifact in response2.get("artifacts", []):
@@ -144,6 +151,7 @@ async def test_hosting_agent_local():
             break
 
         await asyncio.sleep(2)
+
 
 if __name__ == "__main__":
     asyncio.run(test_hosting_agent_local())

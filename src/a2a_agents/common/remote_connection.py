@@ -15,7 +15,6 @@
 """Remote connections helper."""
 
 import traceback
-
 from collections.abc import Callable
 
 from a2a.client import (
@@ -30,7 +29,6 @@ from a2a.types import (
     TaskState,
     TaskStatusUpdateEvent,
 )
-
 
 TaskCallbackArg = Task | TaskStatusUpdateEvent | TaskArtifactUpdateEvent
 TaskUpdateCallback = Callable[[TaskCallbackArg, AgentCard], Task]

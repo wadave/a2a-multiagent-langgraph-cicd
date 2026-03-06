@@ -13,10 +13,10 @@
 # limitations under the License.
 """Unit tests for orchestrator agent logic."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from a2a.types import AgentCard, AgentSkill
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+from a2a.types import AgentCard, AgentSkill
 from a2a_agents.common.adk_orchestrator_agent import AdkOrchestratorAgent
 
 
@@ -226,9 +226,9 @@ class TestOrchestratorAgentCreation:
 
         tool_names = []
         for tool in agent.tools:
-            if hasattr(tool, '__name__'):
+            if hasattr(tool, "__name__"):
                 tool_names.append(tool.__name__)
-            elif hasattr(tool, 'name'):
+            elif hasattr(tool, "name"):
                 tool_names.append(tool.name)
 
         assert len(tool_names) > 0

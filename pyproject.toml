@@ -5,60 +5,60 @@ description = "A2A multi-agent system with LangGraph and Vertex AI Agent Engine"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "a2a-sdk>=0.3.22",
-    "google-adk>=1.25.1",
-    "google-auth-oauthlib>=1.2.2",
-    "google-auth[openid]>=2.40.3",
-    "google-cloud-aiplatform>=1.130.0",
-    "google-genai>=1.36.0",
-    "gradio>=5.46.1",
-    "langchain-google-genai>=2.1.12",
-    "langchain-google-vertexai>=2.1.2",
-    "langchain-mcp-adapters>=0.1.11",
-    "langgraph>=0.6.8",
-    "python-dotenv>=1.0.0",
-    "google-cloud-logging>=3.12.1",
-    "pre-commit>=4.5.1",
+  "a2a-sdk>=0.3.22",
+  "google-adk>=1.25.1",
+  "google-auth-oauthlib>=1.2.2",
+  "google-auth[openid]>=2.40.3",
+  "google-cloud-aiplatform>=1.130.0",
+  "google-genai>=1.36.0",
+  "gradio>=5.46.1",
+  "langchain-google-genai>=2.1.12",
+  "langchain-google-vertexai>=2.1.2",
+  "langchain-mcp-adapters>=0.1.11",
+  "langgraph>=0.6.8",
+  "python-dotenv>=1.0.0",
+  "google-cloud-logging>=3.12.1",
+  "pre-commit>=4.5.1"
 ]
 
 [project.optional-dependencies]
 agents = [
-    "a2a-sdk>=0.3.24",
-    "google-adk>=1.25.1",
-    "google-cloud-aiplatform[agent_engines,adk]>=1.130.0",
-    "pydantic>=2.0.0",
-    "cloudpickle==3.1.1",
-    "langchain-google-genai>=2.0.10",
-    "langchain-core>=0.3.76",
-    "langchain-google-vertexai>=2.1.2",
-    "langchain-mcp-adapters>=0.1.10",
-    "langgraph>=0.6.8",
-    "google-cloud-logging>=3.11.2",
+  "a2a-sdk>=0.3.24",
+  "google-adk>=1.25.1",
+  "google-cloud-aiplatform[agent_engines,adk]>=1.130.0",
+  "pydantic>=2.0.0",
+  "cloudpickle==3.1.1",
+  "langchain-google-genai>=2.0.10",
+  "langchain-core>=0.3.76",
+  "langchain-google-vertexai>=2.1.2",
+  "langchain-mcp-adapters>=0.1.10",
+  "langgraph>=0.6.8",
+  "google-cloud-logging>=3.11.2"
 ]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.25.0",
-    "fastmcp>=2.8.0",
-    "geopy>=2.4.1",
-    "httpx>=0.28.1",
-    "ruff>=0.9.0",
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.25.0",
+  "fastmcp>=2.8.0",
+  "geopy>=2.4.1",
+  "httpx>=0.28.1",
+  "ruff>=0.9.0"
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
-    "integration: marks tests as integration tests (require running services)",
+  "integration: marks tests as integration tests (require running services)"
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
-ignore = ["E501"]
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]

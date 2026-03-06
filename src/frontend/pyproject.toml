@@ -5,13 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "a2a-sdk>=0.3.22",
-    "click>=8.2.1",
-    "google-adk>=1.25.1",
-    "google-auth-oauthlib>=1.2.2",
-    "google-auth[openid]>=2.40.3",
-    "google-cloud-aiplatform>=1.130.0",
-    "google-genai>=1.36.0",
-    "gradio>=5.46.1",
+  "a2a-sdk>=0.3.22",
+  "click>=8.2.1",
+  "google-adk>=1.25.1",
+  "google-auth-oauthlib>=1.2.2",
+  "google-auth[openid]>=2.40.3",
+  "google-cloud-aiplatform>=1.130.0",
+  "google-genai>=1.36.0",
+  "gradio>=5.46.1"
 ]
-

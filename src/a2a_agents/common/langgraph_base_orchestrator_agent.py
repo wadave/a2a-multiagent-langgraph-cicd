@@ -22,11 +22,6 @@ from abc import ABC, abstractmethod
 from typing import Annotated
 
 import httpx
-from langchain_google_vertexai import ChatVertexAI
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import END, START, MessagesState, StateGraph
-from langgraph.prebuilt import InjectedState, ToolNode
-
 from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.types import (
     AgentCard,
@@ -38,7 +33,10 @@ from a2a.types import (
     TextPart,
     TransportProtocol,
 )
-
+from langchain_google_vertexai import ChatVertexAI
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.prebuilt import InjectedState, ToolNode
 
 from a2a_agents.common.logging_utils import setup_cloud_logging
 
@@ -85,7 +83,7 @@ class LanggraphBaseOrchestratorAgent(ABC):
         from a2a_agents.common.remote_connection import RemoteAgentConnections
 
         self.RemoteAgentConnections = RemoteAgentConnections
-        self.remote_agent_connections: dict[str, "RemoteAgentConnections"] = {}
+        self.remote_agent_connections: dict[str, RemoteAgentConnections] = {}
         self.cards: dict[str, AgentCard] = {}
         self.agents: str = ""
         self.remote_agent_addresses = remote_agent_addresses
@@ -97,17 +95,13 @@ class LanggraphBaseOrchestratorAgent(ABC):
         Args:
             remote_agent_addresses: List of remote agent URLs
         """
-        logger.info(
-            f"Fetching agent cards from {len(remote_agent_addresses)} addresses..."
-        )
+        logger.info(f"Fetching agent cards from {len(remote_agent_addresses)} addresses...")
         async with asyncio.TaskGroup() as task_group:
             for address in remote_agent_addresses:
                 task_group.create_task(self.retrieve_card(address))
 
         self._cards_loaded = True
-        logger.info(
-            f"All agent cards loaded! Agents available: {list(self.cards.keys())}"
-        )
+        logger.info(f"All agent cards loaded! Agents available: {list(self.cards.keys())}")
 
     async def retrieve_card(self, address: str):
         """Retrieve an agent card from a remote agent address.
@@ -282,9 +276,7 @@ class LanggraphBaseOrchestratorAgent(ABC):
             ValueError: If the agent_name is not found or client is unavailable
         """
         if self.debug_mode:
-            logger.debug(
-                f"send_message called - Agent: {agent_name}, Message: {message[:50]}..."
-            )
+            logger.debug(f"send_message called - Agent: {agent_name}, Message: {message[:50]}...")
 
         # Try exact match first, then try with " lg" suffix for backwards compatibility
         resolved_agent_name = agent_name

@@ -15,9 +15,10 @@
 """List all deployed reasoning engines (agents) in Vertex AI."""
 
 import os
+
 import vertexai
-from google.genai import types
 from dotenv import load_dotenv
+from google.genai import types
 
 load_dotenv()
 
@@ -48,10 +49,16 @@ try:
         for i, agent in enumerate(agents, 1):
             api_resource = agent.api_resource
             resource_name = api_resource.name
-            agent_id = resource_name.split('/')[-1]
-            display_name = api_resource.display_name if hasattr(api_resource, 'display_name') else 'N/A'
-            description = api_resource.description if hasattr(api_resource, 'description') else 'N/A'
-            create_time = api_resource.create_time if hasattr(api_resource, 'create_time') else 'N/A'
+            agent_id = resource_name.split("/")[-1]
+            display_name = (
+                api_resource.display_name if hasattr(api_resource, "display_name") else "N/A"
+            )
+            description = (
+                api_resource.description if hasattr(api_resource, "description") else "N/A"
+            )
+            create_time = (
+                api_resource.create_time if hasattr(api_resource, "create_time") else "N/A"
+            )
 
             print(f"{i}. {display_name}")
             print(f"   ID: {agent_id}")
@@ -60,11 +67,12 @@ try:
             print(f"   Created: {create_time}")
 
             # Check if it has -lg in the name
-            if '-lg' in display_name.lower() or 'langgraph' in display_name.lower():
-                print(f"   ** This is a LangGraph agent **")
+            if "-lg" in display_name.lower() or "langgraph" in display_name.lower():
+                print("   ** This is a LangGraph agent **")
             print()
 
 except Exception as e:
     print(f"Error listing agents: {e}")
     import traceback
+
     traceback.print_exc()

@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+
 import vertexai
-from google.genai import types
 from dotenv import load_dotenv
+from google.genai import types
 
 load_dotenv()
 
@@ -44,6 +45,7 @@ client = vertexai.Client(
     ),
 )
 
+
 def test_remote_agent(agent_id, agent_name, query):
     print(f"\n--- Testing {agent_name} ({agent_id}) ---")
     try:
@@ -51,7 +53,9 @@ def test_remote_agent(agent_id, agent_name, query):
         project_number = os.environ.get("PROJECT_NUMBER")
         if not project_number:
             raise ValueError("PROJECT_NUMBER environment variable is required")
-        agent_resource_name = f"projects/{project_number}/locations/{location}/reasoningEngines/{agent_id}"
+        agent_resource_name = (
+            f"projects/{project_number}/locations/{location}/reasoningEngines/{agent_id}"
+        )
 
         agent = client.agent_engines.get(name=agent_resource_name)
         print(f"Querying: {query}")
@@ -62,6 +66,7 @@ def test_remote_agent(agent_id, agent_name, query):
         # Pretty print response
         if isinstance(response, dict):
             import json
+
             print(json.dumps(response, indent=2))
         else:
             print(response)
@@ -69,11 +74,14 @@ def test_remote_agent(agent_id, agent_name, query):
     except Exception as e:
         print(f"Error testing {agent_name}: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 def main():
     test_remote_agent(COCKTAIL_AGENT_ID, "Cocktail Agent", "What is in a margarita?")
     test_remote_agent(WEATHER_AGENT_ID, "Weather Agent", "What is the weather in New York, NY?")
+
 
 if __name__ == "__main__":
     main()

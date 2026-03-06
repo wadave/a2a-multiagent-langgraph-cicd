@@ -175,9 +175,7 @@ class TestMakeCocktaildbRequest:
     async def test_success(self):
         result = await make_cocktaildb_request("search.php", params={"s": "margarita"})
         assert result == {"drinks": [SAMPLE_DRINK]}
-        self.mock_client.get.assert_awaited_once_with(
-            "search.php", params={"s": "margarita"}
-        )
+        self.mock_client.get.assert_awaited_once_with("search.php", params={"s": "margarita"})
 
     async def test_null_string_response(self):
         self.mock_response.json.return_value = "null"

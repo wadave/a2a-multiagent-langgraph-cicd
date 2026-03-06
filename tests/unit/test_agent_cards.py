@@ -13,7 +13,6 @@
 # limitations under the License.
 """Unit tests for agent cards."""
 
-import pytest
 from a2a.types import AgentCard, AgentSkill
 
 # Import agent cards

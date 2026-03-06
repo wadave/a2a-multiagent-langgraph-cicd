@@ -15,11 +15,10 @@
 import os
 from typing import Any
 
+from a2a_agents.cocktail_agent.agent import CocktailAgent
 from a2a_agents.common.langgraph_base_mcp_agent_executor import (
     LanggraphBaseMCPAgentExecutor,
 )
-
-from a2a_agents.cocktail_agent.agent import CocktailAgent
 
 
 class CocktailAgentExecutor(LanggraphBaseMCPAgentExecutor):

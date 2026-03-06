@@ -15,13 +15,15 @@
 """Standalone test for MCP servers."""
 
 import asyncio
+
 import httpx
 from fastmcp.client import Client
-from google.oauth2 import id_token
 from google.auth.transport.requests import Request as AuthRequest
+from google.oauth2 import id_token
 
 COCKTAIL_MCP_URL = "https://cocktail-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp"
 WEATHER_MCP_URL = "https://weather-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp"
+
 
 def get_auth_token(url):
     try:
@@ -38,18 +40,20 @@ def get_auth_token(url):
         print(f"✗ Could not fetch ID token: {e}")
         return None
 
+
 class BearerAuth(httpx.Auth):
     def __init__(self, token):
         self.token = token
 
     def auth_flow(self, request):
-        request.headers['Authorization'] = f"Bearer {self.token}"
+        request.headers["Authorization"] = f"Bearer {self.token}"
         yield request
 
+
 async def test_cocktail_mcp():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing Cocktail MCP Server")
-    print("="*60)
+    print("=" * 60)
     print(f"URL: {COCKTAIL_MCP_URL}\n")
 
     token = get_auth_token(COCKTAIL_MCP_URL)
@@ -70,20 +74,18 @@ async def test_cocktail_mcp():
                 "list_cocktails_by_first_letter",
                 "search_ingredient_by_name",
                 "list_random_cocktails",
-                "lookup_cocktail_details_by_id"
+                "lookup_cocktail_details_by_id",
             ]
 
             missing = [t for t in expected_tools if t not in tool_names]
             if missing:
                 print(f"✗ Missing tools: {missing}")
                 return False
-            print(f"✓ All expected tools present\n")
+            print("✓ All expected tools present\n")
 
             # Test 2: Search for margarita
             print("Test 2: Searching for 'margarita'...")
-            result = await client.call_tool(
-                "search_cocktail_by_name", {"name": "margarita"}
-            )
+            result = await client.call_tool("search_cocktail_by_name", {"name": "margarita"})
 
             if not result:
                 print("✗ No results returned")
@@ -91,7 +93,9 @@ async def test_cocktail_mcp():
 
             print(f"✓ Got {len(result)} result(s)")
             if result[0].text:
-                preview = result[0].text[:200] + "..." if len(result[0].text) > 200 else result[0].text
+                preview = (
+                    result[0].text[:200] + "..." if len(result[0].text) > 200 else result[0].text
+                )
                 print(f"  Preview: {preview}")
 
             if "margarita" not in result[0].text.lower():
@@ -100,21 +104,23 @@ async def test_cocktail_mcp():
 
             print("✓ Result contains 'margarita'\n")
 
-            print("="*60)
+            print("=" * 60)
             print("✓ Cocktail MCP Server - ALL TESTS PASSED")
-            print("="*60)
+            print("=" * 60)
             return True
 
     except Exception as e:
         print(f"\n✗ Error testing cocktail MCP: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
+
 async def test_weather_mcp():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Testing Weather MCP Server")
-    print("="*60)
+    print("=" * 60)
     print(f"URL: {WEATHER_MCP_URL}\n")
 
     token = get_auth_token(WEATHER_MCP_URL)
@@ -130,17 +136,13 @@ async def test_weather_mcp():
             for name in tool_names:
                 print(f"  - {name}")
 
-            expected_tools = [
-                "get_active_alerts_by_state",
-                "get_forecast",
-                "get_forecast_by_city"
-            ]
+            expected_tools = ["get_active_alerts_by_state", "get_forecast", "get_forecast_by_city"]
 
             missing = [t for t in expected_tools if t not in tool_names]
             if missing:
                 print(f"✗ Missing tools: {missing}")
                 return False
-            print(f"✓ All expected tools present\n")
+            print("✓ All expected tools present\n")
 
             # Test 2: Get forecast for New York
             print("Test 2: Getting forecast for 'New York, NY'...")
@@ -154,36 +156,40 @@ async def test_weather_mcp():
 
             print(f"✓ Got {len(result)} result(s)")
             if result[0].text:
-                preview = result[0].text[:200] + "..." if len(result[0].text) > 200 else result[0].text
+                preview = (
+                    result[0].text[:200] + "..." if len(result[0].text) > 200 else result[0].text
+                )
                 print(f"  Preview: {preview}")
 
             print("✓ Forecast data received\n")
 
-            print("="*60)
+            print("=" * 60)
             print("✓ Weather MCP Server - ALL TESTS PASSED")
-            print("="*60)
+            print("=" * 60)
             return True
 
     except Exception as e:
         print(f"\n✗ Error testing weather MCP: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
+
 async def main():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("MCP SERVER TESTS")
-    print("="*60)
+    print("=" * 60)
 
     cocktail_result = await test_cocktail_mcp()
     weather_result = await test_weather_mcp()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FINAL RESULTS")
-    print("="*60)
+    print("=" * 60)
     print(f"Cocktail MCP Server: {'✓ PASS' if cocktail_result else '✗ FAIL'}")
     print(f"Weather MCP Server:  {'✓ PASS' if weather_result else '✗ FAIL'}")
-    print("="*60)
+    print("=" * 60)
 
     if cocktail_result and weather_result:
         print("\n✓ ALL MCP SERVERS WORKING!")
@@ -191,6 +197,7 @@ async def main():
     else:
         print("\n✗ Some MCP servers failed")
         return 1
+
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())

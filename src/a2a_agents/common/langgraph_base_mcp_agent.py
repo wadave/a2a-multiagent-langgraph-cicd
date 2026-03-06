@@ -27,7 +27,6 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from pydantic import BaseModel
 
-
 from a2a_agents.common.logging_utils import setup_cloud_logging
 
 logger = logging.getLogger(__name__)
@@ -114,9 +113,7 @@ class LanggraphBaseMCPAgent(ABC):
             )
             raise
 
-    async def stream(
-        self, query: str, context_id: str
-    ) -> AsyncIterable[dict[str, Any]]:
+    async def stream(self, query: str, context_id: str) -> AsyncIterable[dict[str, Any]]:
         """Stream responses from the agent.
 
         Args:
@@ -206,7 +203,5 @@ class LanggraphBaseMCPAgent(ABC):
         return {
             "is_task_complete": False,
             "require_user_input": True,
-            "content": (
-                "We are unable to process your request at the moment. Please try again."
-            ),
+            "content": ("We are unable to process your request at the moment. Please try again."),
         }

@@ -3,6 +3,7 @@
 This module is referenced by AgentEngineConfig(entrypoint_module=..., entrypoint_object="agent_engine")
 when deploying via the SDK with source_packages.
 """
+
 from vertexai.preview.reasoning_engines import A2aAgent
 
 from a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card

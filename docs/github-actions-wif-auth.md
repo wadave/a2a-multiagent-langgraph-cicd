@@ -1,6 +1,6 @@
 # How Authentication Works for GitHub Actions with Google Cloud
 
-If you choose to use **GitHub Actions** instead of Google Cloud Build for your CI/CD pipeline, the modern and secure way to authenticate GitHub to Google Cloud is using **Workload Identity Federation (WIF)**. 
+If you choose to use **GitHub Actions** instead of Google Cloud Build for your CI/CD pipeline, the modern and secure way to authenticate GitHub to Google Cloud is using **Workload Identity Federation (WIF)**.
 
 Using WIF, **no long-lived GCP credentials (like Service Account JSON keys) are ever saved in GitHub**. The entire process is fully automated for machine-to-machine authentication.
 
@@ -18,12 +18,12 @@ You configure this by creating a **Workload Identity Pool** and **Provider** ins
 
 When a developer pushes code and triggers a GitHub Action, the pipeline does the following securely and autonomously:
 
-1. **GitHub Asserts its Identity (OIDC Token):** 
+1. **GitHub Asserts its Identity (OIDC Token):**
    The Action runner creates an encrypted JSON Web Token (JWT), also known as an OIDC token. This token essentially says: *"I am a machine currently running a job for the approved repository."* Because this token is cryptographically signed by GitHub's private keys, nobody else can forge it.
 
 2. **Knocking on the Public Door (STS API):**
    In your `.github/workflows/deploy.yml` file, you add an official authentication step provided by Google (`google-github-actions/auth`). This library sends a POST request across the public internet.
-   - Google runs a standard, public API endpoint at `https://sts.googleapis.com/v1/token` (the Security Token Service API). 
+   - Google runs a standard, public API endpoint at `https://sts.googleapis.com/v1/token` (the Security Token Service API).
 
 3. **The Payload:**
    Included in that public API request to STS is:
@@ -46,35 +46,35 @@ When a developer pushes code and triggers a GitHub Action, the pipeline does the
 ```mermaid
 sequenceDiagram
     autonumber
-    
+
     participant GitHubRepo as GitHub Repository
     participant GHAction as GitHub Action Runner
     participant STS as GCP Public Endpoint (STS API)
     participant IAM as GCP IAM (WIF Rules)
     participant GCPResources as GCP Services (Vertex AI, GCS)
-    
+
     %% Setup Route
     Note over IAM: 1. Setup Phase
     Note over IAM: Administrator configures Trust Rules in GCP Pool & Provider
-    
+
     %% Trigger
     Note over GitHubRepo, GCPResources: 2. Pipeline Execution
     GitHubRepo->>GHAction: Webhook triggers workflow
-    
+
     %% OIDC Generation
     GHAction->>GHAction: Generates OIDC Token (Identity Card) cryptographically signed
-    
+
     %% Auth Request
     GHAction->>STS: POST /v1/token
     Note over GHAction, STS: Payload: OIDC Token + WIF Provider Address String
-    
+
     %% Internal Verification
     STS->>IAM: Internally validates signature and repository rules
     IAM-->>STS: Access Approved for mapped Service Account
-    
+
     %% Auth Response
     STS-->>GHAction: Returns Temporary 1-Hour Google Access Token
-    
+
     %% Deployment
     GHAction->>GCPResources: Run deployment steps (Auth: Temporary Access Token)
     GCPResources-->>GHAction: Success / Logs

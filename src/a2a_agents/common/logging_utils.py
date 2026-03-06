@@ -17,12 +17,13 @@ import os
 
 _cloud_logging_initialized = False
 
+
 def setup_cloud_logging(log_name: str = "a2a-agent", level=logging.INFO):
     """Sets up Google Cloud Logging if running in a supported environment.
-    
+
     This function initializes the Google Cloud Logging client and sets it up
     to be the handler for all standard logging calls.
-    
+
     Args:
         log_name: The name of the log to write to.
         level: The logging level to use (default: logging.INFO)
@@ -30,20 +31,20 @@ def setup_cloud_logging(log_name: str = "a2a-agent", level=logging.INFO):
     global _cloud_logging_initialized
     if _cloud_logging_initialized:
         return
-        
-    # Detect if we should use Cloud Logging. 
+
+    # Detect if we should use Cloud Logging.
     # Usually enabled if running on GCP (Cloud Run, Vertex AI) or explicitly requested.
     use_cloud_logging = os.getenv("USE_CLOUD_LOGGING", "TRUE").lower() in ["true", "1"]
-    
+
     if use_cloud_logging:
         try:
             import google.cloud.logging
-            
+
             client = google.cloud.logging.Client()
             client.setup_logging(log_level=level)
             _cloud_logging_initialized = True
             logging.info(f"Google Cloud Logging initialized for: {log_name}")
-            
+
         except ImportError:
             logging.basicConfig(level=level)
             _cloud_logging_initialized = True
@@ -51,7 +52,9 @@ def setup_cloud_logging(log_name: str = "a2a-agent", level=logging.INFO):
         except Exception as e:
             logging.basicConfig(level=level)
             _cloud_logging_initialized = True
-            logging.warning(f"Failed to initialize Google Cloud Logging: {e}. Falling back to standard logging.")
+            logging.warning(
+                f"Failed to initialize Google Cloud Logging: {e}. Falling back to standard logging."
+            )
     else:
         logging.basicConfig(level=level)
         _cloud_logging_initialized = True

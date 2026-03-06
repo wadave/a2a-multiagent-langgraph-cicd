@@ -19,6 +19,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any
 
+import google.auth
 import httpx
 import vertexai
 from a2a.server.agent_execution import AgentExecutor, RequestContext
@@ -37,11 +38,9 @@ from a2a.utils import (
     new_task,
 )
 from a2a.utils.errors import ServerError
-import google.auth
 from google.auth.transport.requests import Request as AuthRequest
 from google.oauth2.id_token import fetch_id_token
 from langchain_mcp_adapters.client import MultiServerMCPClient
-
 
 from a2a_agents.common.logging_utils import setup_cloud_logging
 
@@ -121,7 +120,9 @@ class LanggraphBaseMCPAgentExecutor(AgentExecutor, ABC):
                 # Try to get an OIDC ID token for Cloud Run MCP servers
                 id_token = fetch_id_token(auth_request, url)
             except Exception as e:
-                logger.warning(f"Failed to fetch OIDC ID token for {url}, falling back to access token: {e}")
+                logger.warning(
+                    f"Failed to fetch OIDC ID token for {url}, falling back to access token: {e}"
+                )
                 # Explicitly get the default credentials
                 credentials, _ = google.auth.default()
                 # Refresh the credentials if they've expired
@@ -154,9 +155,7 @@ class LanggraphBaseMCPAgentExecutor(AgentExecutor, ABC):
                     server_name: {
                         "url": url,
                         "transport": "streamable_http",
-                        "httpx_client_factory": self._create_google_auth_client_factory(
-                            url
-                        ),
+                        "httpx_client_factory": self._create_google_auth_client_factory(url),
                     }
                 }
             )

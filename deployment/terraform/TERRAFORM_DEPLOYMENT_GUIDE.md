@@ -16,10 +16,10 @@ All variables must be provided via `-var` flags or a `.tfvars` file:
 | `cicd_runner_project_id` | GCP project ID | `dw-genai-dev` | Yes |
 | `staging_project_id` | Staging project ID | `dw-genai-dev` | Yes |
 | `prod_project_id` | Production project ID | `dw-genai-prod` | Yes |
-| `project_number` | GCP project number | `496235138247` | Yes |
+| `project_number` | GCP project number | `YOUR_PROJECT_NUMBER` | Yes |
 | `repository_name` | GitHub repo name | `a2a-multiagent-langgraph-cicd` | Yes |
 | `repository_owner` | GitHub owner | `wadave` | Yes |
-| `agent_engine_id` | Full agent resource name | `projects/496235138247/locations/us-central1/reasoningEngines/...` | Yes (unless first deploy) |
+| `agent_engine_id` | Full agent resource name | `projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/...` | Yes (unless first deploy) |
 | `region` | GCP region | `us-central1` | No (defaults to us-central1) |
 
 ### Environment Variables Set by Terraform
@@ -58,20 +58,20 @@ terraform plan \
   -var="cicd_runner_project_id=dw-genai-dev" \
   -var="staging_project_id=dw-genai-dev" \
   -var="prod_project_id=dw-genai-dev" \
-  -var="project_number=496235138247" \
+  -var="project_number=YOUR_PROJECT_NUMBER" \
   -var="repository_name=a2a-multiagent-langgraph-cicd" \
-  -var="repository_owner=wadave" \
-  -var="agent_engine_id=projects/496235138247/locations/us-central1/reasoningEngines/7864466924388745216"
+  -var="repository_owner=YOUR_GITHUB_USER" \
+  -var="agent_engine_id=projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/YOUR_REASONING_ENGINE_ID"  # pragma: allowlist secret
 
 # Apply deployment
 terraform apply \
   -var="cicd_runner_project_id=dw-genai-dev" \
   -var="staging_project_id=dw-genai-dev" \
   -var="prod_project_id=dw-genai-dev" \
-  -var="project_number=496235138247" \
+  -var="project_number=YOUR_PROJECT_NUMBER" \
   -var="repository_name=a2a-multiagent-langgraph-cicd" \
-  -var="repository_owner=wadave" \
-  -var="agent_engine_id=projects/496235138247/locations/us-central1/reasoningEngines/7864466924388745216" \
+  -var="repository_owner=YOUR_GITHUB_USER" \
+  -var="agent_engine_id=projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/YOUR_REASONING_ENGINE_ID"  # pragma: allowlist secret \
   -auto-approve
 ```
 
@@ -82,10 +82,10 @@ Create `terraform.tfvars`:
 cicd_runner_project_id = "dw-genai-dev"
 staging_project_id     = "dw-genai-dev"
 prod_project_id        = "dw-genai-prod"
-project_number         = "496235138247"
+project_number         = "YOUR_PROJECT_NUMBER"
 repository_name        = "a2a-multiagent-langgraph-cicd"
-repository_owner       = "wadave"
-agent_engine_id        = "projects/496235138247/locations/us-central1/reasoningEngines/7864466924388745216"
+repository_owner       = "YOUR_GITHUB_USER"
+agent_engine_id        = "projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/YOUR_REASONING_ENGINE_ID"  # pragma: allowlist secret
 region                 = "us-central1"
 ```
 
@@ -153,17 +153,17 @@ gcloud builds submit ./src/frontend \
 
 ```bash
 export PROJECT_ID=dw-genai-dev
-export PROJECT_NUMBER=496235138247
+export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
 export GOOGLE_CLOUD_REGION=us-central1
 export ENVIRONMENT=staging
-export CT_MCP_SERVER_URL='https://cocktail-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/'
-export WEA_MCP_SERVER_URL='https://weather-remote-mcp-server-lg-496235138247.us-central1.run.app/mcp/'
+export CT_MCP_SERVER_URL='https://cocktail-remote-mcp-server-lg-YOUR_PROJECT_NUMBER.us-central1.run.app/mcp/'
+export WEA_MCP_SERVER_URL='https://weather-remote-mcp-server-lg-YOUR_PROJECT_NUMBER.us-central1.run.app/mcp/'
 export PYTHONPATH=src
 
 python deployment/deploy_agents.py
 
 # Capture the AGENT_ENGINE_ID from output
-# Example: projects/496235138247/locations/us-central1/reasoningEngines/7864466924388745216
+# Example: projects/YOUR_PROJECT_NUMBER/locations/us-central1/reasoningEngines/YOUR_REASONING_ENGINE_ID
 ```
 
 ### Step 3: Create Terraform State Bucket (if needed)
@@ -187,9 +187,9 @@ terraform apply \
   -var="cicd_runner_project_id=dw-genai-dev" \
   -var="staging_project_id=dw-genai-dev" \
   -var="prod_project_id=dw-genai-dev" \
-  -var="project_number=496235138247" \
+  -var="project_number=YOUR_PROJECT_NUMBER" \
   -var="repository_name=a2a-multiagent-langgraph-cicd" \
-  -var="repository_owner=wadave" \
+  -var="repository_owner=YOUR_GITHUB_USER" \
   -var="agent_engine_id=<AGENT_ENGINE_ID_FROM_STEP_2>" \
   -auto-approve
 ```
@@ -257,7 +257,7 @@ The CI/CD pipeline (`.github/workflows/deploy.yml`) automatically passes all req
 
 **Staging:**
 - `PROJECT_ID`: `dw-genai-dev`
-- `PROJECT_NUMBER`: `496235138247`
+- `PROJECT_NUMBER`: `YOUR_PROJECT_NUMBER`
 - `REGION`: `us-central1`
 
 **Production:**
@@ -302,9 +302,9 @@ terraform destroy \
   -var="cicd_runner_project_id=dw-genai-dev" \
   -var="staging_project_id=dw-genai-dev" \
   -var="prod_project_id=dw-genai-dev" \
-  -var="project_number=496235138247" \
+  -var="project_number=YOUR_PROJECT_NUMBER" \
   -var="repository_name=a2a-multiagent-langgraph-cicd" \
-  -var="repository_owner=wadave" \
+  -var="repository_owner=YOUR_GITHUB_USER" \
   -var="agent_engine_id=unset" \
   -auto-approve
 ```

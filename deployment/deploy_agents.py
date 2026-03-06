@@ -26,20 +26,21 @@ Environment variables:
     BUCKET_NAME: GCS bucket for staging (default: {PROJECT_ID}-bucket)
     GOOGLE_GENAI_MODEL: Model name (default: gemini-2.5-flash)
 """
+
 import logging
 import os
 import sys
-import traceback
 import tomllib
+import traceback
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import vertexai
-from vertexai._genai.types import AgentEngineConfig
-
 from agent_state_manager import AgentStateManager
+from vertexai._genai.types import AgentEngineConfig
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,11 +58,10 @@ def find_existing_agent(client, display_name):
     """Find an existing agent engine by display_name. Returns resource name if found."""
     try:
         for agent_engine in client.agent_engines.list():
-            engine_display_name = (
-                getattr(agent_engine.api_resource, 'display_name', '')
-                or getattr(agent_engine.api_resource, 'displayName', '')
+            engine_display_name = getattr(agent_engine.api_resource, "display_name", "") or getattr(
+                agent_engine.api_resource, "displayName", ""
             )
-            engine_name = getattr(agent_engine.api_resource, 'name', '')
+            engine_name = getattr(agent_engine.api_resource, "name", "")
             if engine_display_name == display_name:
                 logger.info(f"Found existing agent engine '{display_name}': {engine_name}")
                 return engine_name
@@ -70,8 +70,16 @@ def find_existing_agent(client, display_name):
     return None
 
 
-def deploy_agent(client, display_name, description, entrypoint_module, entrypoint_object,
-                 service_account, env_vars, requirements_file="requirements.txt"):
+def deploy_agent(
+    client,
+    display_name,
+    description,
+    entrypoint_module,
+    entrypoint_object,
+    service_account,
+    env_vars,
+    requirements_file="requirements.txt",
+):
     """Deploy or update an agent using AgentEngineConfig (source_code_spec compatible)."""
 
     config = AgentEngineConfig(
@@ -95,7 +103,9 @@ def deploy_agent(client, display_name, description, entrypoint_module, entrypoin
             )
         except Exception as e:
             if "spec.package_spec" in str(e) or "deployment_source" in str(e):
-                logger.warning(f"Legacy package_spec error detected. Deleting and recreating '{display_name}' ({existing_name})...")
+                logger.warning(
+                    f"Legacy package_spec error detected. Deleting and recreating '{display_name}' ({existing_name})..."
+                )
                 # Fallback: Delete and recreate
                 client.agent_engines.delete(name=existing_name)
                 logger.info(f"Creating new agent '{display_name}' after deletion...")

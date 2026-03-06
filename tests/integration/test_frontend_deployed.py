@@ -15,9 +15,9 @@
 """Test the deployed Gradio frontend on Cloud Run."""
 
 import requests
-import time
 
 FRONTEND_URL = "https://a2a-frontend-496235138247.us-central1.run.app"
+
 
 def test_frontend_health():
     """Test if the frontend is accessible."""
@@ -44,9 +44,10 @@ def test_frontend_health():
         print(f"✗ Error accessing frontend: {e}")
         return False
 
+
 def test_gradio_api():
     """Test Gradio API endpoint."""
-    print(f"\nTesting Gradio API...")
+    print("\nTesting Gradio API...")
 
     try:
         # Gradio exposes a /config endpoint
@@ -64,6 +65,7 @@ def test_gradio_api():
     except Exception as e:
         print(f"⚠ Could not access Gradio API: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("=" * 60)

@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import asyncio
-import os
-import httpx
-import google.auth.transport.requests
-from google.oauth2 import id_token
-from fastmcp import Client
 import subprocess
+
+import google.auth.transport.requests
+import httpx
+from fastmcp import Client
+from google.oauth2 import id_token
 
 # MCP Server URLs - Updated to match LangGraph (-lg) services
 # Added trailing slash to avoid potential redirects that strip auth headers
 COCKTAIL_SERVER_URL = "https://cocktail-remote-mcp-server-lg-496235138247.us-central1.run.app/"
 WEATHER_SERVER_URL = "https://weather-remote-mcp-server-lg-496235138247.us-central1.run.app/"
+
 
 class BearerAuth(httpx.Auth):
     def __init__(self, token):
@@ -31,6 +32,7 @@ class BearerAuth(httpx.Auth):
     def auth_flow(self, request):
         request.headers["Authorization"] = f"Bearer {self.token}"
         yield request
+
 
 def get_id_token(url):
     """Generates an ID token for the given URL."""
@@ -55,6 +57,7 @@ def get_id_token(url):
     auth_req = google.auth.transport.requests.Request()
     return id_token.fetch_id_token(auth_req, audience)
 
+
 async def test_cocktail_server():
     """Tests the Cocktail MCP server."""
     print("\n--- Testing Cocktail MCP Server ---")
@@ -75,16 +78,15 @@ async def test_cocktail_server():
         tools = await client.list_tools()
         for tool in tools:
             print(f">>> 🛠️  Tool found: {tool.name}")
-        
+
         # Call search tool
         print("Calling search_cocktail_by_name('margarita')...")
-        result = await client.call_tool(
-            "search_cocktail_by_name", {"name": "margarita"}
-        )
-        if hasattr(result, 'content') and result.content:
+        result = await client.call_tool("search_cocktail_by_name", {"name": "margarita"})
+        if hasattr(result, "content") and result.content:
             print(f"<<< ✅ Result: {result.content[0].text[:200]}...")
         else:
             print(f"<<< ✅ Result: {result}")
+
 
 async def test_weather_server():
     """Tests the Weather MCP server."""
@@ -99,22 +101,21 @@ async def test_weather_server():
 
     endpoint = f"{WEATHER_SERVER_URL}mcp/"
     print(f"Connecting to: {endpoint} (no auth)")
-    
+
     async with Client(endpoint, auth=auth) as client:
         # List available tools
         tools = await client.list_tools()
         for tool in tools:
             print(f">>> 🛠️  Tool found: {tool.name}")
-        
+
         # Call forecast tool
         print("Calling get_forecast_by_city('New York', 'NY')...")
-        result = await client.call_tool(
-            "get_forecast_by_city", {"city": "New York", "state": "NY"}
-        )
-        if hasattr(result, 'content') and result.content:
+        result = await client.call_tool("get_forecast_by_city", {"city": "New York", "state": "NY"})
+        if hasattr(result, "content") and result.content:
             print(f"<<< ✅ Result: {result.content[0].text[:200]}...")
         else:
             print(f"<<< ✅ Result: {result}")
+
 
 async def main():
     try:
@@ -124,7 +125,9 @@ async def main():
         print(f"Error during testing: {e}")
         print("Ensure you have authenticated with 'gcloud auth application-default login'")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -21,10 +21,6 @@ from typing import TYPE_CHECKING
 
 import httpx
 import vertexai
-from google.auth import default
-from google.auth.transport.requests import Request as AuthRequest
-from langgraph.errors import GraphRecursionError
-
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
@@ -37,6 +33,9 @@ from a2a.types import (
 )
 from a2a.utils import new_agent_text_message, new_task
 from a2a.utils.errors import ServerError
+from google.auth import default
+from google.auth.transport.requests import Request as AuthRequest
+from langgraph.errors import GraphRecursionError
 
 if TYPE_CHECKING:
     from langgraph.graph.graph import CompiledGraph
@@ -96,9 +95,7 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
         )
 
     @abstractmethod
-    async def create_orchestrator_agent(
-        self, httpx_client: httpx.AsyncClient
-    ) -> "CompiledGraph":
+    async def create_orchestrator_agent(self, httpx_client: httpx.AsyncClient) -> "CompiledGraph":
         """Create and initialize the orchestrator agent.
 
         Args:
@@ -203,21 +200,13 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
                                 not hasattr(last_message, "tool_calls")
                                 or not last_message.tool_calls
                             ):
-                                if (
-                                    hasattr(last_message, "content")
-                                    and last_message.content
-                                ):
+                                if hasattr(last_message, "content") and last_message.content:
                                     final_response = str(last_message.content)
                                     if self.debug_mode:
-                                        logger.debug(
-                                            f"AI final response: {final_response[:100]}"
-                                        )
+                                        logger.debug(f"AI final response: {final_response[:100]}")
 
                             # Check if it's an AI message
-                            if (
-                                hasattr(last_message, "content")
-                                and last_message.content
-                            ):
+                            if hasattr(last_message, "content") and last_message.content:
                                 content = last_message.content
 
                                 # Check if content is structured (ResponseFormat from Pydantic)
@@ -225,16 +214,12 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
                                 if hasattr(content, "model_dump"):
                                     # It's a Pydantic model - convert to dict
                                     content_dict = content.model_dump()
-                                    final_response = content_dict.get(
-                                        "message", str(content_dict)
-                                    )
+                                    final_response = content_dict.get("message", str(content_dict))
                                     status = content_dict.get("status", "completed")
                                     needs_input = status == "input_required"
                                 elif isinstance(content, dict):
                                     # Already a dict with status field
-                                    final_response = content.get(
-                                        "message", str(content)
-                                    )
+                                    final_response = content.get("message", str(content))
                                     status = content.get("status", "completed")
                                     needs_input = status == "input_required"
                                 else:
@@ -242,17 +227,12 @@ class LanggraphBaseOrchestratorAgentExecutor(AgentExecutor, ABC):
                                     final_response = content
 
                                 # Check state for input requirement
-                                if (
-                                    "needs_user_input" in chunk
-                                    and chunk["needs_user_input"]
-                                ):
+                                if "needs_user_input" in chunk and chunk["needs_user_input"]:
                                     needs_input = True
 
             except GraphRecursionError as e:
                 # Handle recursion limit gracefully
-                logger.warning(
-                    f"Recursion limit reached after {iteration_count} iterations: {e}"
-                )
+                logger.warning(f"Recursion limit reached after {iteration_count} iterations: {e}")
                 final_response = self.get_recursion_error_message()
                 needs_input = False
 

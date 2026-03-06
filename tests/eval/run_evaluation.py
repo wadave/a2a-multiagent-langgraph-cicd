@@ -15,28 +15,23 @@
 """Run agent evaluation tests."""
 
 import argparse
-import asyncio
 import json
 import logging
-import os
 import sys
 from pathlib import Path
-from typing import Dict, List
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def load_evalset(evalset_path: Path) -> Dict:
+def load_evalset(evalset_path: Path) -> dict:
     """Load an evaluation set and normalize examples."""
     with open(evalset_path) as f:
         data = json.load(f)
 
     # Handle different top-level keys for cases/examples
     examples = data.get("examples") or data.get("eval_cases") or []
-    
+
     # Normalize each example/case
     normalized_examples = []
     for ex in examples:
@@ -48,18 +43,18 @@ def load_evalset(evalset_path: Path) -> Dict:
         if "input" not in normalized and "session_input" in normalized:
             normalized["input"] = normalized["session_input"]
         normalized_examples.append(normalized)
-    
+
     data["examples"] = normalized_examples
     return data
 
 
-def load_eval_config(config_path: Path) -> Dict:
+def load_eval_config(config_path: Path) -> dict:
     """Load evaluation configuration."""
     with open(config_path) as f:
         return json.load(f)
 
 
-def calculate_rubric_score(example: Dict, response: str) -> Dict[str, float]:
+def calculate_rubric_score(example: dict, response: str) -> dict[str, float]:
     """Calculate rubric-based scores for a response.
 
     Args:
@@ -101,7 +96,7 @@ def calculate_rubric_score(example: Dict, response: str) -> Dict[str, float]:
     return scores
 
 
-def evaluate_example(example: Dict, config: Dict) -> Dict:
+def evaluate_example(example: dict, config: dict) -> dict:
     """Evaluate a single example.
 
     Args:
@@ -141,9 +136,7 @@ def evaluate_example(example: Dict, config: Dict) -> Dict:
     result["passed"] = avg_score >= threshold
 
     if not result["passed"]:
-        result["notes"].append(
-            f"Average score {avg_score:.2f} below threshold {threshold}"
-        )
+        result["notes"].append(f"Average score {avg_score:.2f} below threshold {threshold}")
 
     return result
 
@@ -187,7 +180,7 @@ def main():
     evalset = load_evalset(evalset_path)
 
     logger.info(f"Running evaluation: {evalset.get('name', args.evalset)}")
-    
+
     examples = evalset.get("examples", [])
     logger.info(f"Total examples: {len(examples)}")
 
@@ -198,7 +191,6 @@ def main():
         logger.info(f"Evaluating example {i}/{len(examples)}: {example.get('id')}")
         result = evaluate_example(example, config)
         results.append(result)
-
 
         if result["passed"]:
             logger.info(f"  ✓ PASSED (score: {result['avg_score']:.2f})")

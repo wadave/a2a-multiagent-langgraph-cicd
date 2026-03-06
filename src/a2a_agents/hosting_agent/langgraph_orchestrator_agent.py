@@ -104,9 +104,7 @@ async def get_root_agent(httpx_client: httpx.AsyncClient | None = None):
     )
 
     # Wait for agent cards to be loaded before processing any queries
-    await hosting_agent.init_remote_agent_addresses(
-        hosting_agent.remote_agent_addresses
-    )
+    await hosting_agent.init_remote_agent_addresses(hosting_agent.remote_agent_addresses)
 
     # Create the LangGraph agent with fully loaded cards
     return hosting_agent.create_agent()

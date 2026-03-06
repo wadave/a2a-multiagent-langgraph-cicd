@@ -13,25 +13,23 @@
 # limitations under the License.
 """Agent evaluation tests using test cases."""
 
-import asyncio
 import json
-import os
-import pytest
 from pathlib import Path
-from typing import Dict, List
+
+import pytest
 
 # Load evaluation configuration
 EVAL_CONFIG_PATH = Path(__file__).parent / "eval_config.json"
 EVALSETS_DIR = Path(__file__).parent / "evalsets"
 
 
-def load_eval_config() -> Dict:
+def load_eval_config() -> dict:
     """Load evaluation configuration."""
     with open(EVAL_CONFIG_PATH) as f:
         return json.load(f)
 
 
-def load_evalset(evalset_name: str) -> List[Dict]:
+def load_evalset(evalset_name: str) -> list[dict]:
     """Load an evaluation set."""
     evalset_path = EVALSETS_DIR / f"{evalset_name}.evalset.json"
     if not evalset_path.exists():
@@ -148,7 +146,10 @@ class TestAgentResponseQuality:
 
         # These queries should be routed to Weather Agent
         for query in weather_queries:
-            assert any(word in query.lower() for word in ["weather", "forecast", "rain", "temperature", "conditions"])
+            assert any(
+                word in query.lower()
+                for word in ["weather", "forecast", "rain", "temperature", "conditions"]
+            )
 
     def test_cocktail_query_routing(self):
         """Test that cocktail queries should route to Cocktail Agent."""
@@ -175,9 +176,7 @@ class TestAgentResponseQuality:
 
         # These queries should not contain agent-specific keywords
         for query in general_queries:
-            assert not any(
-                word in query.lower() for word in ["weather", "cocktail", "forecast"]
-            )
+            assert not any(word in query.lower() for word in ["weather", "cocktail", "forecast"])
 
     def test_response_format_markdown(self):
         """Test that responses should be formatted in Markdown."""
@@ -206,8 +205,6 @@ class TestMemoryBankIntegration:
 
     def test_conversation_continuity(self):
         """Test that memory enables conversation continuity."""
-        # First query
-        query1 = "What are the ingredients for a Margarita?"
         # Follow-up query referencing previous context
         query2 = "What about a Manhattan?"
 

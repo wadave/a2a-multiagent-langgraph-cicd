@@ -28,8 +28,7 @@ The main components are:
 import asyncio
 import logging
 import os
-import traceback
-from typing import AsyncIterator, List
+from collections.abc import AsyncIterator
 
 import gradio as gr
 import httpx
@@ -50,6 +49,7 @@ from google.genai import types as genai_types  # Aliased to avoid conflict
 
 try:
     from a2a_agents.common.logging_utils import setup_cloud_logging
+
     # Configure logging
     setup_cloud_logging(log_name="frontend-app")
 except ImportError:
@@ -82,7 +82,9 @@ client = vertexai.Client(
 if AGENT_ENGINE_ID and AGENT_ENGINE_ID.startswith("projects/"):
     remote_a2a_agent_resource_name = AGENT_ENGINE_ID
 else:
-    remote_a2a_agent_resource_name = f"projects/{PROJECT_NUMBER}/locations/{LOCATION}/reasoningEngines/{AGENT_ENGINE_ID}"
+    remote_a2a_agent_resource_name = (
+        f"projects/{PROJECT_NUMBER}/locations/{LOCATION}/reasoningEngines/{AGENT_ENGINE_ID}"
+    )
 
 
 class GoogleAuth(httpx.Auth):
@@ -138,7 +140,7 @@ async def get_agent_card(resource_name: str):
 
 async def get_response_from_agent(
     query: str,
-    history: List[gr.ChatMessage],
+    history: list[gr.ChatMessage],
 ) -> AsyncIterator[gr.ChatMessage]:
     """Get response from host agent."""
 
@@ -206,7 +208,7 @@ async def get_response_from_agent(
                                 logger.info(f"Found artifact text: {final_result_text[:50]}...")
                                 break
                             # Handle list/dict responses (e.g., from LangGraph agents)
-                            elif hasattr(part.root, 'text'):
+                            elif hasattr(part.root, "text"):
                                 final_result_text = part.root.text
                                 logger.info(f"Found text field: {final_result_text[:50]}...")
                                 break
@@ -214,31 +216,37 @@ async def get_response_from_agent(
                             else:
                                 try:
                                     import ast
-                                    import json
                                     import re
 
                                     # Convert to string
                                     part_str = str(part.root)
 
                                     # Check if it has "signature:" prefix and extract the list
-                                    if 'signature:' in part_str:
+                                    if "signature:" in part_str:
                                         # Extract the part after "signature:"
-                                        match = re.search(r'signature:\s*(\[.*\])', part_str)
+                                        match = re.search(r"signature:\s*(\[.*\])", part_str)
                                         if match:
                                             list_str = match.group(1)
                                             parsed = ast.literal_eval(list_str)
                                             if isinstance(parsed, list) and len(parsed) > 0:
-                                                if isinstance(parsed[0], dict) and 'text' in parsed[0]:
-                                                    final_result_text = parsed[0]['text']
-                                                    logger.info(f"Extracted text from signature list: {final_result_text[:50]}...")
+                                                if (
+                                                    isinstance(parsed[0], dict)
+                                                    and "text" in parsed[0]
+                                                ):
+                                                    final_result_text = parsed[0]["text"]
+                                                    logger.info(
+                                                        f"Extracted text from signature list: {final_result_text[:50]}..."
+                                                    )
                                                     break
                                     # If it looks like a list representation
-                                    elif part_str.startswith('[') and 'text' in part_str:
+                                    elif part_str.startswith("[") and "text" in part_str:
                                         parsed = ast.literal_eval(part_str)
                                         if isinstance(parsed, list) and len(parsed) > 0:
-                                            if isinstance(parsed[0], dict) and 'text' in parsed[0]:
-                                                final_result_text = parsed[0]['text']
-                                                logger.info(f"Extracted text from list: {final_result_text[:50]}...")
+                                            if isinstance(parsed[0], dict) and "text" in parsed[0]:
+                                                final_result_text = parsed[0]["text"]
+                                                logger.info(
+                                                    f"Extracted text from list: {final_result_text[:50]}..."
+                                                )
                                                 break
                                 except Exception as e:
                                     logger.debug(f"DEBUG: Failed to parse - {e}")

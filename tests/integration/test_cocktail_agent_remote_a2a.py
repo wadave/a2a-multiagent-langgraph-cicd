@@ -16,13 +16,9 @@
 import asyncio
 import logging
 import os
-import subprocess
-from dotenv import load_dotenv
 
 import httpx
 import vertexai
-from google.genai import types
-
 from a2a.client import ClientConfig, ClientFactory
 from a2a.types import (
     Message,
@@ -32,6 +28,8 @@ from a2a.types import (
     TextPart,
     TransportProtocol,
 )
+from dotenv import load_dotenv
+from google.genai import types
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -43,17 +41,13 @@ def get_bearer_token():
         from google.auth import default
         from google.auth.transport.requests import Request
 
-        credentials, project = default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
+        credentials, project = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
         request = Request()
         credentials.refresh(request)
         return credentials.token
     except Exception as e:
         print(f"Error getting credentials: {e}")
-        print(
-            "Please ensure you have authenticated with 'gcloud auth application-default login'."
-        )
+        print("Please ensure you have authenticated with 'gcloud auth application-default login'.")
     return None
 
 
@@ -81,8 +75,15 @@ async def test_remote_cocktail_agent():
 
     # Get the remote agent
     print("Getting remote agent...")
-    agent_resource_name = f"projects/{project_number}/locations/{location}/reasoningEngines/{cocktail_agent_id}"
-    config = {"http_options": {"base_url": f"https://{location}-aiplatform.googleapis.com", "api_version": "v1beta1"}}
+    agent_resource_name = (
+        f"projects/{project_number}/locations/{location}/reasoningEngines/{cocktail_agent_id}"
+    )
+    config = {
+        "http_options": {
+            "base_url": f"https://{location}-aiplatform.googleapis.com",
+            "api_version": "v1beta1",
+        }
+    }
     remote_agent = client.agent_engines.get(name=agent_resource_name, config=config)
 
     # Get agent card
@@ -142,7 +143,7 @@ async def test_remote_cocktail_agent():
         }
         response = await a2a_client.get_task(TaskQueryParams(**task_data))
 
-        print(f"Poll {i+1}: {response.status.state}")
+        print(f"Poll {i + 1}: {response.status.state}")
 
         if response.status.state == "TASK_STATE_COMPLETED":
             if hasattr(response, "artifacts") and response.artifacts:

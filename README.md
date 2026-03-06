@@ -381,7 +381,7 @@ If you prefer to set up CI/CD manually or need more control:
    OAUTH_CLIENT_ID_SECRET_NAME=your-oauth-secret-name
    AUTH_ID=your-auth-id
    ```
-   
+
    *Note: `WORKLOAD_IDENTITY_PROVIDER` and `SERVICE_ACCOUNT_EMAIL` are automatically constructed in the workflow using the `PROJECT_ID` and `PROJECT_NUMBER`.*
 
 6. **Test the Setup:**

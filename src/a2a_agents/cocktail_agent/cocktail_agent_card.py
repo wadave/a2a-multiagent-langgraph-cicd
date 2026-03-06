@@ -21,7 +21,6 @@ from a2a.types import AgentSkill
 # Agent Engine
 from vertexai.preview.reasoning_engines.templates.a2a import create_agent_card
 
-
 logging.getLogger().setLevel(logging.INFO)
 
 # Define a skill - a specific capability your agent offers

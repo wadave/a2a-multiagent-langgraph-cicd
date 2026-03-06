@@ -32,7 +32,7 @@ jobs:
       environment: staging
       tf_prefix: staging
       force_deploy_all: ${{ inputs.force_deploy_all || false }}
-    secrets: inherit
+    secrets: inherit  # pragma: allowlist secret
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
@@ -44,4 +44,4 @@ jobs:
       environment: production
       tf_prefix: prod
       force_deploy_all: ${{ inputs.force_deploy_all || false }}
-    secrets: inherit
+    secrets: inherit  # pragma: allowlist secret
