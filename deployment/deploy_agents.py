@@ -126,16 +126,13 @@ def deploy_agent(
                 config=config,
             )
         except Exception as e:
-            if "spec.package_spec" in str(e) or "deployment_source" in str(e):
-                logger.warning(
-                    f"Legacy package_spec error detected. Deleting and recreating '{display_name}' ({existing_name})..."
-                )
-                # Fallback: Delete and recreate
-                client.agent_engines.delete(name=existing_name)
-                logger.info(f"Creating new agent '{display_name}' after deletion...")
-                remote_agent = client.agent_engines.create(config=config)
-            else:
-                raise
+            logger.warning(
+                f"Agent engine update failed: {e}. Falling back to delete and recreate '{display_name}' ({existing_name})..."
+            )
+            # Fallback: Delete and recreate
+            client.agent_engines.delete(name=existing_name)
+            logger.info(f"Creating new agent '{display_name}' after deletion...")
+            remote_agent = client.agent_engines.create(config=config)
         logger.info(f"Updated '{display_name}' successfully: {remote_agent.api_resource.name}")
         return remote_agent.api_resource.name
 
