@@ -96,7 +96,7 @@ def deploy_agent(
     entrypoint_object,
     service_account,
     env_vars,
-    requirements: list[str],
+    requirements_file: str,
 ):
     """Deploy or update an agent using AgentEngineConfig (source_code_spec compatible)."""
 
@@ -105,6 +105,9 @@ def deploy_agent(
     agent_instance = getattr(module, entrypoint_object)
     class_methods_list = generate_class_methods_from_agent(agent_instance)
 
+    if requirements_file:
+        logger.info(f"Using requirements file: {requirements_file}")
+
     config = AgentEngineConfig(
         display_name=display_name,
         description=description,
@@ -112,7 +115,7 @@ def deploy_agent(
         entrypoint_module=entrypoint_module,
         entrypoint_object=entrypoint_object,
         class_methods=class_methods_list,
-        requirements=requirements,
+        requirements_file=requirements_file,
         env_vars={k: v for k, v in env_vars.items() if v},
         service_account=service_account,
     )
@@ -154,10 +157,11 @@ def main():
     project_number = os.environ.get("PROJECT_NUMBER")
     google_genai_model = os.environ.get("GOOGLE_GENAI_MODEL", "gemini-2.5-flash")
     bucket_name = os.environ.get("BUCKET_NAME", f"{project_id}-bucket")
-    service_account = f"{project_number}-compute@developer.gserviceaccount.com"
-
     environment = os.environ.get("ENVIRONMENT", "staging")
     state_manager = AgentStateManager(project_id, environment, location)
+    
+    # Use the app service account created by Terraform: a2a-multiagent-lg-cicd-app
+    service_account = f"a2a-multiagent-lg-cicd-app@{project_id}.iam.gserviceaccount.com"
 
     if not project_id or not project_number:
         logger.error("PROJECT_ID and PROJECT_NUMBER must be set in environment.")
@@ -171,6 +175,14 @@ def main():
         sys.exit(1)
 
     requirements = get_agent_requirements()
+    
+    requirements_path = os.path.join(src_dir, "a2a_agents", ".requirements.txt")
+    with open(requirements_path, "w") as f:
+        f.write("\n".join(requirements))
+    logger.info(f"Wrote requirements to {requirements_path}")
+    
+    # We pass the relative path as expected by vertex SDK for remote bundling
+    rel_req_path = "a2a_agents/.requirements.txt"
 
     vertexai.init(project=project_id, location=location, staging_bucket=f"gs://{bucket_name}")
     client = vertexai.Client(project=project_id, location=location)
@@ -196,7 +208,7 @@ def main():
             entrypoint_object="agent_engine",
             service_account=service_account,
             env_vars=ct_env,
-            requirements=requirements,
+            requirements_file=rel_req_path,
         )
         state_manager.update_agent("cocktail", ct_agent_name)
     except Exception as e:
@@ -215,7 +227,7 @@ def main():
             entrypoint_object="agent_engine",
             service_account=service_account,
             env_vars=wea_env,
-            requirements=requirements,
+            requirements_file=rel_req_path,
         )
         state_manager.update_agent("weather", wea_agent_name)
     except Exception as e:
