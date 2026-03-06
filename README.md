@@ -237,13 +237,15 @@ The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
 - `staging` branch — deploys to the staging project
 - `main` branch — deploys to the production project
 
-**Pipeline steps** (each runs only when its source files change):
+**Pipeline steps** (using Hybrid Provisioning; steps run based on file changes):
 
-1. **Detect Changes** — uses `dorny/paths-filter` to identify which components changed
-2. **Deploy MCP Servers** — builds and deploys Cocktail/Weather MCP servers to Cloud Run via Cloud Build (triggered by changes in `src/mcp_servers/**`)
-3. **Deploy Agents** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine (triggered only by changes to agent code in `src/a2a_agents/**` or `deployment/deploy_agents.py`)
-4. **Deploy Frontend** — builds and deploys the Gradio frontend to Cloud Run via Cloud Build
-5. **Apply Terraform** — updates Cloud Run service configuration, IAM, and Gemini Enterprise registration
+1. **Detect Changes** — uses `dorny/paths-filter` to identify which components changed.
+2. **Build Images** — builds container images for MCP servers and Frontend via Cloud Build.
+3. **Provision Infrastructure Shells (Terraform)** — provisions base Cloud Run and Agent Engine shells.
+4. **Deploy MCP Servers** — deploys Cocktail/Weather MCP servers to Cloud Run.
+5. **Deploy Agents (Python SDK)** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine.
+6. **Deploy Frontend** — updates the Gradio frontend to Cloud Run.
+7. **Gemini Enterprise Registration (Terraform)** — finalizes OAuth and Gemini Agent registration after SDK deployment.
 
 #### Option 1: Automated CI/CD Setup (Recommended)
 
@@ -285,7 +287,6 @@ Use the `agent-starter-pack` CLI tool to automatically configure GitHub Actions 
      - `GE_APP_STAGING`
      - `OAUTH_CLIENT_ID_SECRET_NAME`
      - `AUTH_ID`
-     - `AGENT_ENGINE_ID` *(auto-populated by the `deploy-clean.yml` bootstrap after first agent deployment)*
 
 #### Option 2: Manual CI/CD Setup
 

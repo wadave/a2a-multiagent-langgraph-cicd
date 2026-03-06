@@ -110,18 +110,18 @@ jobs:
       # ---- Terraform Apply (infra) ----
 
       - name: Setup Terraform
-        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         uses: hashicorp/setup-terraform@v3
 
       - name: Ensure Terraform state bucket exists
-        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         run: |
           gcloud storage buckets describe gs://${{ env.PROJECT_ID }}-terraform-state 2>/dev/null || \
           gcloud storage buckets create gs://${{ env.PROJECT_ID }}-terraform-state \
             --location=${{ env.REGION }} --project=${{ env.PROJECT_ID }}
 
       - name: Terraform Init
-        if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
         run: |
           terraform init \
             -backend-config="bucket=${{ env.PROJECT_ID }}-terraform-state" \
@@ -221,10 +221,6 @@ jobs:
             --set-env-vars "PROJECT_ID=${{ env.PROJECT_ID }},PROJECT_NUMBER=${{ env.PROJECT_NUMBER }},AGENT_ENGINE_ID=${AGENT_ID},GOOGLE_CLOUD_LOCATION=${{ env.REGION }}"
 
       # ---- Terraform Apply (Gemini Enterprise Registration) ----
-
-      - name: Setup Terraform for Registration
-        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
-        uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Apply (Gemini Enterprise Registration)
         if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all

@@ -131,11 +131,12 @@ Communication between agents and tool servers follows the standard MCP specifica
 
 ### CI/CD Pipeline
 
-GitHub Actions automates:
+GitHub Actions leverages a **Hybrid Provisioning** pattern to automate:
 
 1. **Testing**: Running unit and evaluation tests on PRs.
-2. **Infrastructure**: Running Terraform `plan`/`apply`.
-3. **Deployment**: Building and pushing containers to Artifact Registry, then deploying to Cloud Run.
+2. **Infrastructure Shells (Terraform)**: Provisioning base infrastructure shells (Cloud Run services, Agent Engine reasoning engines) without failing if code hasn't been deployed yet.
+3. **Application Deployment**: Building container images and updating Cloud Run services (MCPs and Frontend) and Vertex AI Agent Engines (using the Python SDK).
+4. **Post-Deployment Registration (Terraform)**: A targeted final Terraform apply to register the fully deployed agent to Gemini Enterprise.
 
 ### Infrastructure as Code (IaC)
 
