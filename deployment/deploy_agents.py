@@ -30,7 +30,9 @@ Environment variables:
 import importlib
 import logging
 import os
+import re
 import sys
+import time
 import tomllib
 import traceback
 from pathlib import Path
@@ -135,19 +137,26 @@ def deploy_agent(
             # Fallback: Delete and recreate
             try:
                 client.agent_engines.delete(name=existing_name)
-                logger.info(f"Creating new agent '{display_name}' after deletion...")
+                logger.info(f"Deleted agent '{display_name}'. Waiting for cleanup...")
+                time.sleep(10)
             except Exception as delete_error:
                 logger.warning(f"Deletion also encountered an issue: {delete_error}")
-            
+
             try:
+                logger.info(f"Creating new agent '{display_name}' after deletion...")
                 remote_agent = client.agent_engines.create(config=config)
             except Exception as e2:
-                # Catch RuntimeError / stale resource
+                # Catch RuntimeError with stale resource reference
                 match = re.search(r"(projects/[^/]+/locations/[^/]+/reasoningEngines/\d+)", str(e2))
                 if match:
                     stale_name = match.group(1)
-                    logger.warning(f"Stale resource found {stale_name}, attempting update instead.")
-                    remote_agent = client.agent_engines.update(name=stale_name, config=config)
+                    logger.warning(f"Stale resource {stale_name} blocking creation. Deleting it...")
+                    try:
+                        client.agent_engines.delete(name=stale_name)
+                        time.sleep(10)
+                    except Exception:
+                        pass
+                    remote_agent = client.agent_engines.create(config=config)
                 else:
                     raise e2
         
@@ -161,8 +170,13 @@ def deploy_agent(
         match = re.search(r"(projects/[^/]+/locations/[^/]+/reasoningEngines/\d+)", str(e))
         if match:
             stale_name = match.group(1)
-            logger.warning(f"Stale resource found {stale_name}, attempting update instead.")
-            remote_agent = client.agent_engines.update(name=stale_name, config=config)
+            logger.warning(f"Stale resource {stale_name} blocking creation. Deleting it...")
+            try:
+                client.agent_engines.delete(name=stale_name)
+                time.sleep(10)
+            except Exception:
+                pass
+            remote_agent = client.agent_engines.create(config=config)
         else:
             raise e
     logger.info(f"Created '{display_name}' successfully: {remote_agent.api_resource.name}")
