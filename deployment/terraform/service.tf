@@ -39,7 +39,6 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
   project      = each.value.project
 
   spec {
-    agent_framework = "google-adk"
     service_account = google_service_account.app_sa[each.value.env].email
 
     deployment_spec {
@@ -71,6 +70,7 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
     ignore_changes = [
       spec[0].source_code_spec,
       spec[0].deployment_spec[0].env,
+      spec[0].agent_framework,
     ]
   }
 
