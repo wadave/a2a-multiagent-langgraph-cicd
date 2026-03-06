@@ -96,7 +96,7 @@ def deploy_agent(
     entrypoint_object,
     service_account,
     env_vars,
-    requirements_file="requirements.txt",
+    requirements: list[str],
 ):
     """Deploy or update an agent using AgentEngineConfig (source_code_spec compatible)."""
 
@@ -112,7 +112,7 @@ def deploy_agent(
         entrypoint_module=entrypoint_module,
         entrypoint_object=entrypoint_object,
         class_methods=class_methods_list,
-        requirements_file=requirements_file,
+        requirements=requirements,
         env_vars={k: v for k, v in env_vars.items() if v},
         service_account=service_account,
     )
@@ -170,12 +170,7 @@ def main():
         logger.error("CT_MCP_SERVER_URL and WEA_MCP_SERVER_URL must be set in environment.")
         sys.exit(1)
 
-    # Write a requirements file for Agent Engine from pyproject.toml
     requirements = get_agent_requirements()
-    requirements_file = os.path.join(src_dir, ".requirements.txt")
-    with open(requirements_file, "w") as f:
-        f.write("\n".join(requirements) + "\n")
-    logger.info(f"Wrote {len(requirements)} requirements to {requirements_file}")
 
     vertexai.init(project=project_id, location=location, staging_bucket=f"gs://{bucket_name}")
     client = vertexai.Client(project=project_id, location=location)
@@ -201,7 +196,7 @@ def main():
             entrypoint_object="agent_engine",
             service_account=service_account,
             env_vars=ct_env,
-            requirements_file=".requirements.txt",
+            requirements=requirements,
         )
         state_manager.update_agent("cocktail", ct_agent_name)
     except Exception as e:
@@ -220,7 +215,7 @@ def main():
             entrypoint_object="agent_engine",
             service_account=service_account,
             env_vars=wea_env,
-            requirements_file=".requirements.txt",
+            requirements=requirements,
         )
         state_manager.update_agent("weather", wea_agent_name)
     except Exception as e:
