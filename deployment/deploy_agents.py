@@ -133,14 +133,38 @@ def deploy_agent(
                 f"Agent engine update failed: {e}. Falling back to delete and recreate '{display_name}' ({existing_name})..."
             )
             # Fallback: Delete and recreate
-            client.agent_engines.delete(name=existing_name)
-            logger.info(f"Creating new agent '{display_name}' after deletion...")
-            remote_agent = client.agent_engines.create(config=config)
+            try:
+                client.agent_engines.delete(name=existing_name)
+                logger.info(f"Creating new agent '{display_name}' after deletion...")
+            except Exception as delete_error:
+                logger.warning(f"Deletion also encountered an issue: {delete_error}")
+            
+            try:
+                remote_agent = client.agent_engines.create(config=config)
+            except Exception as e2:
+                # Catch RuntimeError / stale resource
+                match = re.search(r"(projects/[^/]+/locations/[^/]+/reasoningEngines/\d+)", str(e2))
+                if match:
+                    stale_name = match.group(1)
+                    logger.warning(f"Stale resource found {stale_name}, attempting update instead.")
+                    remote_agent = client.agent_engines.update(name=stale_name, config=config)
+                else:
+                    raise e2
+        
         logger.info(f"Updated '{display_name}' successfully: {remote_agent.api_resource.name}")
         return remote_agent.api_resource.name
 
     logger.info(f"Creating new agent '{display_name}'...")
-    remote_agent = client.agent_engines.create(config=config)
+    try:
+        remote_agent = client.agent_engines.create(config=config)
+    except Exception as e:
+        match = re.search(r"(projects/[^/]+/locations/[^/]+/reasoningEngines/\d+)", str(e))
+        if match:
+            stale_name = match.group(1)
+            logger.warning(f"Stale resource found {stale_name}, attempting update instead.")
+            remote_agent = client.agent_engines.update(name=stale_name, config=config)
+        else:
+            raise e
     logger.info(f"Created '{display_name}' successfully: {remote_agent.api_resource.name}")
     return remote_agent.api_resource.name
 
@@ -249,7 +273,7 @@ def main():
             entrypoint_object="agent_engine",
             service_account=service_account,
             env_vars=host_env,
-            requirements_file=".requirements.txt",
+            requirements_file=rel_req_path,
         )
         state_manager.update_agent("hosting", host_agent_name)
     except Exception as e:

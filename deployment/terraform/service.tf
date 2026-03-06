@@ -66,11 +66,12 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
     }
   }
 
+  # Ignore ALL spec fields that the SDK modifies after initial shell creation.
+  # Terraform only creates the shell; deploy_agents.py owns the runtime config.
   lifecycle {
     ignore_changes = [
-      spec[0].source_code_spec,
-      spec[0].deployment_spec[0].env,
-      spec[0].agent_framework,
+      description,
+      spec,
     ]
   }
 
