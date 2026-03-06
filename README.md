@@ -1,57 +1,26 @@
 # A2A Multi-LangGraph-Agent on Agent Engine
 
-This project demonstrates a multi-agent system using Agent2Agent (A2A), LangGraph, Vertex AI Agent Engine, MCP servers, and a CI/CD pipeline powered by GitHub Actions and Terraform.
+A multi-agent system using Agent2Agent (A2A), LangGraph, Vertex AI Agent Engine, MCP servers, and a CI/CD pipeline powered by GitHub Actions and Terraform.
 
 ## Table of Contents
 
-- [Overview](#overview)
-  - [Architecture](#architecture)
-  - [Security and Observability](#security-and-observability)
-  - [Application Screenshot](#application-screenshot)
-- [Project Structure](#project-structure)
-- [Core Components](#core-components)
-  - [Agents](#agents)
-  - [MCP Servers and Tools](#mcp-servers-and-tools)
-- [Example Usage](#example-usage)
-- [Setup and Deployment](#setup-and-deployment)
-  - [Prerequisites](#prerequisites)
-  - [Environment Variables for Local Testing](#environment-variables-for-local-testing)
+- [Architecture](#architecture)
+- [Quick Start (Local)](#quick-start-local)
+- [Full Local Setup (Without Docker)](#full-local-setup-without-docker)
+- [Cloud Deployment](#cloud-deployment)
+  - [Manual Deployment](#manual-deployment)
   - [CI/CD Setup](#cicd-setup)
-  - [Manual Deployment / Local Development](#manual-deployment-local-development)
-  - [Securing the Frontend](#securing-the-frontend)
 - [Testing](#testing)
-  - [Install Dev Dependencies](#install-dev-dependencies)
-  - [Unit Tests](#unit-tests)
-  - [Integration Tests](#integration-tests)
-  - [Run All Tests (excluding integration)](#run-all-tests-excluding-integration)
-  - [Evaluation](#evaluation)
-  - [Load Testing](#load-testing)
-  - [Development Notebooks](#development-notebooks)
+- [Observability](#observability)
+- [Project Structure](#project-structure)
+- [Additional Documentation](#additional-documentation)
 - [Disclaimer](#disclaimer)
-- [License](#license)
 
-## Overview
+## Architecture
 
-A web application demonstrating the integration of Google's Agent2Agent (A2A) protocol and LangGraph for multi-agent orchestration with Model Context Protocol (MCP) clients. A host agent coordinates tasks between specialized remote A2A agents that interact with MCP servers to fulfill user requests.
-
-### Architecture
-
-The application uses a multi-agent orchestrated architecture, leveraging Google’s Agent2Agent (A2A) protocol for secure communication and LangGraph for logic and routing. Authentication is enforced at every layer (indicated by padlock icons in the diagram).
+The Hosting Agent acts as a central orchestrator. It receives user requests via its A2A Server, uses LangGraph for intent routing, and delegates tasks to specialist agents (Weather, Cocktail) over A2A.
 
 ![architecture](assets/a2a-lg.png)
-
-**Component Breakdown & Data Flow:**
-
-1.  **Frontend Layer**: Users can interact via a **Custom Gradio UI** (hosted on Cloud Run with an A2A Client) or the **Gemini Enterprise UI**.
-2.  **Orchestration Layer (Host Agent)**: Running on an Agent Engine, the Host Agent acts as the central brain. It receives requests via its A2A Server, utilizes LangGraph for intent determination, and delegates tasks to specialized agents using A2A Clients.
-3.  **Specialized Agents**:
-    - **Cocktail Agent**: Receives sub-tasks via A2A, processes drink-related queries using LangGraph, and retrieves data using an **MCP Client**.
-    - **Weather Agent**: Receives sub-tasks via A2A, processes weather-related reasoning using LangGraph, and retrieves data using an **MCP Client**.
-4.  **Data Retrieval**: Specialized agents communicate with remote **MCP Servers** via StreamableHTTP to fetch real-world data from the public internet (TheCocktailDB and National Weather Service APIs).
-
-
-
-System Diagram:
 
 ```mermaid
 graph TD
@@ -91,80 +60,17 @@ graph TD
     CocktailMCP --> |"TheCocktailDB API"| CocktailDB_Node
 ```
 
-### Security and Observability
-
-The system is designed with a "Security-First" approach and comprehensive observability:
-
-#### Security
-
-- **Authentication (OAuth 2.0)**: Communication between the **Gemini Enterprise UI** and the **Host Agent** is secured via OAuth 2.0. This ensures that only authorized users can trigger orchestration workflows. OAuth credentials are a prerequisite for deployment.
-- **Secret Management**: Sensitive information is never hardcoded. **Google Cloud Secret Manager** is used to securely store and manage:
-  - **OAuth Client Secrets** (for Gemini UI to Host Agent communication).
-  - **GitHub Token Credentials** (for CI/CD and repository interactions).
-- **Identity & Access Management (IAM)**: Granular access control is enforced using Google Cloud IAM. Access to **remote agents** (Vertex AI Agent Engine) and **MCP servers** (Cloud Run) is restricted to specific service accounts with minimal necessary permissions:
-  - `roles/run.invoker`: For calling MCP servers on Cloud Run.
-  - `roles/aiplatform.user`: For interacting with remote A2A agents.
-- **End-to-End Encryption**: All component-to-component communication (Frontend -> Host Agent -> Specialized Agents -> MCP Servers) is encrypted in transit via HTTPS/SSE.
-
-#### Observability
-
-- **Structured Cloud Logging (Agents & Frontend)**: The Hosting Agent and Frontend use an explicit Google Cloud Logging integration via a shared [logging_utils.py](src/a2a_agents/common/logging_utils.py) utility. Logs are structured with proper severity levels and routed to **Google Cloud Logging** when `PROJECT_ID` is set; they fall back to standard Python console logging in local development.
-- **MCP Server Logging**: MCP servers use standard Python `logging` (stdout/stderr). Cloud Run automatically captures and forwards these to **Cloud Logging** without requiring the `google-cloud-logging` SDK.
-- **Centralized Monitoring**: All components output logs consolidated in the **Cloud Logging** dashboard. Agents use a distinct `log_name` (e.g., `base-mcp-agent`) for easier filtering; MCP server logs are filterable by Cloud Run service name.
-- **Execution Capture**: For specialized agents running on Agent Engine, execution logs are captured by the runtime environment and are accessible through the Vertex AI Logging interface.
-
-### Application Screenshot
-
-![screenshot](assets/screenshot.png)
-
-## Project Structure
-
-```
-.
-├── src/
-│   ├── a2a_agents/                     # A2A agent implementations
-│   │   ├── common/                     # Shared base classes
-│   │   ├── cocktail_agent/             # Cocktail specialist agent
-│   │   ├── weather_agent/              # Weather specialist agent
-│   │   └── hosting_agent/             # Orchestrator agent
-│   ├── frontend/                       # Gradio web frontend
-│   └── mcp_servers/                    # MCP server implementations
-│       ├── cocktail_mcp_server/        # CocktailDB API wrapper
-│       └── weather_mcp_server/         # Weather.gov API wrapper
-├── deployment/
-│   ├── deploy_agents.py                # Agent deployment script
-│   └── terraform/                      # Infrastructure as code
-├── docs/                               # Project documentation
-│   ├── software_design.md              # System architecture and design
-│   └── github-actions-wif-auth.md      # GitHub Actions auth guide
-├── tests/
-│   ├── unit/                           # Unit tests (pytest)
-│   ├── integration/                    # Integration tests
-│   ├── eval/                           # ADK evaluation cases
-│   └── load_test/                      # Load tests (Locust)
-├── dev_notebooks/                      # Development & testing notebooks
-├── .github/workflows/
-│   ├── deploy.yml                      # CI/CD pipeline (push-triggered)
-│   ├── deploy-env.yml                  # Reusable deployment workflow
-│   └── deploy-clean.yml               # Full from-scratch deployment
-├── docker-compose.yml                  # Local development stack
-├── Makefile                            # Developer shortcuts (test, lint, local-up)
-└── pyproject.toml                      # Project configuration & dependencies
-```
-
-## Core Components
-
 ### Agents
 
-| Agent              | Role         | Description                                                                                                                                                                         |
-| ------------------ | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hosting Agent**  | Orchestrator | Receives user queries, determines the required task, and delegates to the appropriate specialist agent via A2A `send_message`. Handles greetings and capability questions directly. |
-| **Cocktail Agent** | Specialist   | Handles cocktail recipe and ingredient queries using the Cocktail MCP server.                                                                                                       |
-| **Weather Agent**  | Specialist   | Handles weather forecast and alert queries using the Weather MCP server.                                                                                                            |
+| Agent              | Role         | Description                                                                                                |
+| ------------------ | ------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Hosting Agent**  | Orchestrator | Routes user queries to the right specialist agent via A2A. Handles greetings and capability questions directly. |
+| **Weather Agent**  | Specialist   | Answers weather forecast and alert queries using the Weather MCP server ([Weather.gov](https://www.weather.gov/) API). |
+| **Cocktail Agent** | Specialist   | Answers cocktail recipe and ingredient queries using the Cocktail MCP server ([TheCocktailDB](https://www.thecocktaildb.com/) API). |
 
-### MCP Servers and Tools
+### MCP Server Tools
 
-**Cocktail MCP Server** — wraps [TheCocktailDB](https://www.thecocktaildb.com/) API:
+**Cocktail MCP Server:**
 
 | Tool                                         | Description                    |
 | -------------------------------------------- | ------------------------------ |
@@ -174,7 +80,7 @@ The system is designed with a "Security-First" approach and comprehensive observ
 | `list_random_cocktails()`                    | Get a random cocktail          |
 | `lookup_cocktail_details_by_id(cocktail_id)` | Full cocktail details by ID    |
 
-**Weather MCP Server** — wraps [Weather.gov](https://www.weather.gov/) (NOAA) API:
+**Weather MCP Server:**
 
 | Tool                                | Description                           |
 | ----------------------------------- | ------------------------------------- |
@@ -182,8 +88,78 @@ The system is designed with a "Security-First" approach and comprehensive observ
 | `get_forecast(latitude, longitude)` | Weather forecast by coordinates       |
 | `get_alerts(state)`                 | Active weather alerts by state code   |
 
-## Example Usage
+### Key Features
 
+- **Multi-Agent Orchestration**: A2A protocol for secure agent-to-agent communication; LangGraph for reasoning and task execution.
+- **Model Context Protocol (MCP)**: Streamable HTTP transport for standardized tool access from remote MCP servers.
+- **Security**: OAuth 2.0 authentication, Google Cloud IAM (least privilege), Secret Manager for credentials, HTTPS end-to-end.
+- **Multiple Frontends**: Custom Gradio UI (Cloud Run) and Gemini Enterprise UI.
+- **Automated Infrastructure**: GitHub Actions + Terraform hybrid provisioning with Google Cloud Build.
+
+---
+
+## Quick Start (Local)
+
+The fastest way to run the MCP servers and frontend locally using Docker Compose.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+- [gcloud SDK](https://cloud.google.com/sdk/docs/install) (authenticated)
+- A Google Cloud project with Vertex AI API enabled
+
+### Steps
+
+1. **Clone and configure:**
+
+   ```bash
+   git clone <repo-url>
+   cd a2a-multiagent-langgraph-cicd
+
+   # Copy the example env file and fill in your values
+   cp .env.example .env
+   ```
+
+   Edit `.env` with your Google Cloud project details:
+   ```bash
+   PROJECT_ID=your-project-id
+   PROJECT_NUMBER=your-project-number    # find via: gcloud projects describe $PROJECT_ID --format="value(projectNumber)"
+   GOOGLE_CLOUD_LOCATION=us-central1
+   AGENT_ENGINE_ID=projects/PROJECT_NUMBER/locations/REGION/reasoningEngines/AGENT_ID  # from deploy_agents.py output
+   ```
+
+2. **Authenticate with Google Cloud:**
+
+   ```bash
+   gcloud auth login
+   gcloud auth application-default login
+   gcloud config set project $PROJECT_ID
+   ```
+
+3. **Start the local stack:**
+
+   ```bash
+   make local-up
+   # or: docker compose up --build
+   ```
+
+   This starts:
+   | Service        | Local URL                    |
+   | -------------- | ---------------------------- |
+   | Cocktail MCP   | http://localhost:8081/mcp     |
+   | Weather MCP    | http://localhost:8082/mcp     |
+   | Frontend       | http://localhost:8080         |
+
+4. **Stop the stack:**
+
+   ```bash
+   make local-down
+   # or: docker compose down
+   ```
+
+### Example Queries
+
+Once running, try these in the frontend:
 ```
 Please get cocktail margarita id and then full detail of cocktail margarita
 Please list a random cocktail
@@ -192,105 +168,197 @@ Please get weather forecast for 40.7128,-74.0060
 Are there any weather alerts for Texas?
 ```
 
-## Setup and Deployment
+---
+
+## Full Local Setup (Without Docker)
+
+For development and running agents locally without Docker.
 
 ### Prerequisites
 
 1. [Python 3.12+](https://www.python.org/downloads/)
 2. [gcloud SDK](https://cloud.google.com/sdk/docs/install)
 3. [uv](https://docs.astral.sh/uv/getting-started/installation/)
-4. [Terraform](https://developer.hashicorp.com/terraform/downloads)
-5. [GitHub CLI (gh)](https://cli.github.com/)
-6. Create a Gemini Enterprise App and get the App ID.
-7. Create OAuth credentials and save them in Google Cloud Secret Manager as "client_secret".
+4. A Google Cloud project with Vertex AI API enabled
 
-### Environment Variables for Local Testing
-
-Before running locally, set up the following environment variables:
+### Install Dependencies
 
 ```bash
-# Required: Google Cloud Configuration
-export PROJECT_ID=YOUR_PROJECT_ID
-export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
-export GOOGLE_CLOUD_REGION=us-central1
+uv sync              # core dependencies
+uv sync --extra dev  # include test/dev tools (pytest, ruff, etc.)
+```
 
-# Required: MCP Server URLs (after MCP servers are deployed)
-export CT_MCP_SERVER_URL=https://cocktail-mcp-lg-staging-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
-export WEA_MCP_SERVER_URL=https://weather-mcp-lg-staging-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
+### Environment Variables
 
-# Required: Python path for agent deployment
+```bash
+cp .env.example .env
+# Edit .env with your values, then:
+export $(grep -v '^#' .env | xargs)
+
+# Also set PYTHONPATH for agent imports
 export PYTHONPATH=src
 ```
 
-**How to find your values:**
+See [`.env.example`](.env.example) for all available variables and descriptions.
 
-- `PROJECT_ID`: Your Google Cloud project ID (e.g., `my-project`)
-- `PROJECT_NUMBER`: Run `gcloud projects describe $PROJECT_ID --format="value(projectNumber)"`
-- `GOOGLE_CLOUD_REGION`: The region where you deploy services (e.g., `us-central1`)
+### Run MCP Servers Locally
 
-### CI/CD Setup
+Each MCP server can be run standalone for development:
 
-This project uses **GitHub Actions** for CI/CD with **Terraform** for infrastructure management and **Google Cloud Build** for container builds.
+```bash
+# In separate terminals:
+uv run python -m src.mcp_servers.cocktail_mcp_server.cocktail_server
+uv run python -m src.mcp_servers.weather_mcp_server.weather_server
+```
 
-The workflow (`.github/workflows/deploy.yml`) triggers on pushes to:
+### Run Agents Locally
 
-- `staging` branch — deploys to the staging project
-- `main` branch — deploys to the production project
+Agent executors start local A2A servers for testing:
 
-**Pipeline steps** (using Hybrid Provisioning; steps run based on file changes):
+```bash
+# In separate terminals:
+uv run python -m src.a2a_agents.weather_agent.agent_executor
+uv run python -m src.a2a_agents.cocktail_agent.agent_executor
+uv run python -m src.a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor
+```
 
-1. **Detect Changes** — uses `dorny/paths-filter` to identify which components changed.
-2. **Build Images** — builds container images for MCP servers and Frontend via Cloud Build.
-3. **Provision Infrastructure Shells (Terraform)** — provisions base Cloud Run and Agent Engine shells.
-4. **Deploy MCP Servers** — deploys Cocktail/Weather MCP servers to Cloud Run.
-5. **Deploy Agents (Python SDK)** — runs `deployment/deploy_agents.py` to deploy A2A agents to Vertex AI Agent Engine.
-6. **Deploy Frontend** — updates the Gradio frontend to Cloud Run.
-7. **Gemini Enterprise Registration (Terraform)** — finalizes OAuth and Gemini Agent registration after SDK deployment.
+---
 
-#### Option 1: Automated CI/CD Setup (Recommended)
+## Cloud Deployment
 
-Use the `agent-starter-pack` CLI tool to automatically configure GitHub Actions with Cloud Build:
+### Manual Deployment
 
-1. **Authenticate with Google Cloud and GitHub:**
+Deploy each component to Google Cloud without CI/CD.
+
+**Additional prerequisites:** [Terraform](https://developer.hashicorp.com/terraform/downloads), [GitHub CLI (gh)](https://cli.github.com/), Gemini Enterprise App ID, OAuth credentials in Secret Manager as `client_secret`.
+
+1. **Authenticate:**
 
    ```bash
    gcloud auth login
    gcloud auth application-default login
-   gh auth login
+   gcloud config set project $PROJECT_ID
    ```
 
-2. **Install the agent-starter-pack:**
+2. **Deploy MCP Servers to Cloud Run:**
 
    ```bash
-   uvx agent-starter-pack setup-cicd \
-     --dev-project YOUR_DEV_PROJECT_ID \
-     --staging-project YOUR_STAGING_PROJECT_ID \
-     --prod-project YOUR_PROD_PROJECT_ID \
-     --repository-name YOUR_REPO_NAME \
-     --repository-owner YOUR_GITHUB_USERNAME \
-     --cicd-runner github_actions
+   # Cocktail MCP Server
+   gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
+     --tag gcr.io/${PROJECT_ID}/cocktail-mcp-lg
+
+   gcloud run deploy cocktail-mcp-lg-staging \
+     --image gcr.io/${PROJECT_ID}/cocktail-mcp-lg \
+     --platform managed \
+     --region ${GOOGLE_CLOUD_REGION} \
+     --allow-unauthenticated
+
+   # Weather MCP Server
+   gcloud builds submit ./src/mcp_servers/weather_mcp_server \
+     --tag gcr.io/${PROJECT_ID}/weather-mcp-lg
+
+   gcloud run deploy weather-mcp-lg-staging \
+     --image gcr.io/${PROJECT_ID}/weather-mcp-lg \
+     --platform managed \
+     --region ${GOOGLE_CLOUD_REGION} \
+     --allow-unauthenticated
    ```
 
-   This command will:
-   - Enable required Google Cloud APIs
-   - Create Workload Identity Federation for GitHub Actions
-   - Set up GitHub repository secrets
-   - Configure Cloud Build triggers
-   - Grant necessary IAM permissions
+3. **Deploy Agents to Vertex AI Agent Engine:**
 
-3. **Verify the setup:**
-   - Check GitHub repository settings → Secrets and variables → Actions
-   - Verify the following variables are configured (environment-specific under GitHub Environments or repository variables):
-     - `PROJECT_ID`
-     - `PROJECT_NUMBER`
-     - `REPOSITORY_OWNER`
-     - `GE_APP_STAGING`
-     - `OAUTH_CLIENT_ID_SECRET_NAME`
-     - `AUTH_ID`
+   ```bash
+   python deployment/deploy_agents.py
+   ```
 
-#### Option 2: Manual CI/CD Setup
+4. **Deploy Frontend to Cloud Run:**
 
-If you prefer to set up CI/CD manually or need more control:
+   ```bash
+   gcloud builds submit ./src/frontend \
+     --tag gcr.io/${PROJECT_ID}/a2a-frontend-lg
+
+   gcloud run deploy a2a-frontend-lg-staging \
+     --image gcr.io/${PROJECT_ID}/a2a-frontend-lg \
+     --platform managed \
+     --region ${GOOGLE_CLOUD_REGION} \
+     --allow-unauthenticated
+   ```
+
+#### Securing the Frontend
+
+To restrict frontend access to specific users:
+
+1. **Remove public access:**
+
+   ```bash
+   gcloud run services remove-iam-policy-binding a2a-frontend-lg-staging \
+     --region=${GOOGLE_CLOUD_REGION} \
+     --project=${PROJECT_ID} \
+     --member="allUsers" \
+     --role="roles/run.invoker"
+   ```
+
+2. **Grant access to your account:**
+
+   ```bash
+   gcloud run services add-iam-policy-binding a2a-frontend-lg-staging \
+     --region=${GOOGLE_CLOUD_REGION} \
+     --project=${PROJECT_ID} \
+     --member="user:YOUR_GOOGLE_EMAIL" \
+     --role="roles/run.invoker"
+   ```
+
+3. **Access via Cloud Run proxy** (after securing):
+
+   ```bash
+   gcloud run services proxy a2a-frontend-lg-staging \
+     --region=${GOOGLE_CLOUD_REGION} \
+     --project=${PROJECT_ID} \
+     --port=8080
+   ```
+
+### CI/CD Setup
+
+The project uses **GitHub Actions** for CI/CD with **Terraform** for infrastructure and **Google Cloud Build** for container builds.
+
+#### How the Pipeline Works
+
+The deployment pipeline (`.github/workflows/deploy.yml`) triggers on pushes to:
+
+- `staging` branch → deploys to the staging environment
+- `main` branch → deploys to the production environment
+
+**Pipeline steps (Hybrid Provisioning):**
+
+1. **Detect Changes** — identifies which components changed (MCP servers, agents, frontend, terraform).
+2. **Build Images** — builds container images via Cloud Build.
+3. **Terraform Apply (Phase 1)** — provisions Cloud Run services, Agent Engine shells, IAM, and networking.
+4. **Deploy MCP Servers** — deploys Cocktail/Weather MCP servers to Cloud Run.
+5. **Deploy Agents** — runs `deployment/deploy_agents.py` to deploy agents to Vertex AI Agent Engine.
+6. **Deploy Frontend** — updates the Gradio frontend on Cloud Run.
+7. **Terraform Apply (Phase 2)** — finalizes Gemini Enterprise OAuth and agent registration.
+
+#### Option 1: Automated Setup (Recommended)
+
+Use the `agent-starter-pack` CLI to configure GitHub Actions automatically:
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+gh auth login
+
+uvx agent-starter-pack setup-cicd \
+  --dev-project YOUR_DEV_PROJECT_ID \
+  --staging-project YOUR_STAGING_PROJECT_ID \
+  --prod-project YOUR_PROD_PROJECT_ID \
+  --repository-name YOUR_REPO_NAME \
+  --repository-owner YOUR_GITHUB_USERNAME \
+  --cicd-runner github_actions
+```
+
+#### Option 2: Manual Setup
+
+<details>
+<summary>Click to expand manual CI/CD setup steps</summary>
 
 1. **Enable Required APIs:**
 
@@ -302,13 +370,12 @@ If you prefer to set up CI/CD manually or need more control:
      artifactregistry.googleapis.com \
      iam.googleapis.com \
      iamcredentials.googleapis.com \
-     --project YOUR_PROJECT_ID
+     --project $PROJECT_ID
    ```
 
 2. **Create a Service Account for GitHub Actions:**
 
    ```bash
-   export PROJECT_ID=YOUR_PROJECT_ID
    export SERVICE_ACCOUNT_NAME=github-runner
 
    gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME \
@@ -322,22 +389,11 @@ If you prefer to set up CI/CD manually or need more control:
    export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")
    export SA_EMAIL=${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
 
-   # Grant Cloud Build, Cloud Run, and Vertex AI permissions
-   gcloud projects add-iam-policy-binding $PROJECT_ID \
-     --member="serviceAccount:${SA_EMAIL}" \
-     --role="roles/cloudbuild.builds.builder"
-
-   gcloud projects add-iam-policy-binding $PROJECT_ID \
-     --member="serviceAccount:${SA_EMAIL}" \
-     --role="roles/run.admin"
-
-   gcloud projects add-iam-policy-binding $PROJECT_ID \
-     --member="serviceAccount:${SA_EMAIL}" \
-     --role="roles/aiplatform.admin"
-
-   gcloud projects add-iam-policy-binding $PROJECT_ID \
-     --member="serviceAccount:${SA_EMAIL}" \
-     --role="roles/iam.serviceAccountUser"
+   for ROLE in roles/cloudbuild.builds.builder roles/run.admin roles/aiplatform.admin roles/iam.serviceAccountUser; do
+     gcloud projects add-iam-policy-binding $PROJECT_ID \
+       --member="serviceAccount:${SA_EMAIL}" \
+       --role="$ROLE"
+   done
    ```
 
 4. **Set up Workload Identity Federation:**
@@ -346,12 +402,10 @@ If you prefer to set up CI/CD manually or need more control:
    export REPO_OWNER=YOUR_GITHUB_USERNAME
    export REPO_NAME=YOUR_REPO_NAME
 
-   # Create Workload Identity Pool
    gcloud iam workload-identity-pools create "github" \
      --location="global" \
      --project=$PROJECT_ID
 
-   # Create Workload Identity Provider
    gcloud iam workload-identity-pools providers create-oidc "github-actions" \
      --location="global" \
      --workload-identity-pool="github" \
@@ -359,7 +413,6 @@ If you prefer to set up CI/CD manually or need more control:
      --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository" \
      --project=$PROJECT_ID
 
-   # Allow GitHub Actions to impersonate the service account
    export WORKLOAD_IDENTITY_POOL_ID=$(gcloud iam workload-identity-pools describe github \
      --location=global --project=$PROJECT_ID --format="value(name)")
 
@@ -371,155 +424,24 @@ If you prefer to set up CI/CD manually or need more control:
 
 5. **Configure GitHub Environments and Variables:**
 
-   Go to your GitHub repository → Settings → Environments. Create `staging` and `production` environments to match the branches.
-   Then, in each environment (or globally in Settings → Secrets and variables → Actions → Variables), add the following variables:
+   Go to your GitHub repository **Settings > Environments**. Create `staging` and `production` environments. In each environment, add:
 
-   ```bash
-   PROJECT_ID=your-project-id
-   PROJECT_NUMBER=your-project-number
-   REPOSITORY_OWNER=your-github-username
-   GE_APP_STAGING=your-gemini-enterprise-app-name
-   OAUTH_CLIENT_ID_SECRET_NAME=your-oauth-secret-name
-   AUTH_ID=your-auth-id
-   ```
+   | Variable                       | Value                                |
+   | ------------------------------ | ------------------------------------ |
+   | `PROJECT_ID`                   | Your GCP project ID                  |
+   | `PROJECT_NUMBER`               | Your GCP project number              |
+   | `REPOSITORY_OWNER`             | Your GitHub username                 |
+   | `GE_APP_STAGING`               | Your Gemini Enterprise app name      |
+   | `OAUTH_CLIENT_ID_SECRET_NAME`  | Your OAuth secret name               |
+   | `AUTH_ID`                      | Your auth ID                         |
 
-   *Note: `WORKLOAD_IDENTITY_PROVIDER` and `SERVICE_ACCOUNT_EMAIL` are automatically constructed in the workflow using the `PROJECT_ID` and `PROJECT_NUMBER`.*
+</details>
 
-6. **Test the Setup:**
-
-   ```bash
-   # Push to staging branch to trigger deployment
-   git checkout staging
-   git push origin staging
-
-   # Monitor the GitHub Actions workflow
-   gh run watch
-   ```
-
-### Manual Deployment / Local Development
-
-For local development and testing without CI/CD:
-
-1. **Authenticate and configure:**
-
-   ```bash
-   gcloud auth login
-   gcloud auth application-default login
-   gcloud config set project YOUR_PROJECT_ID
-   uv sync
-   ```
-
-2. **Set environment variables** (see "Environment Variables for Local Testing" above):
-
-   ```bash
-   export PROJECT_ID=YOUR_PROJECT_ID
-   export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
-   export GOOGLE_CLOUD_REGION=us-central1
-   export PYTHONPATH=src
-   ```
-
-3. **Deploy MCP Servers to Cloud Run:**
-
-   ```bash
-   # Build and deploy Cocktail MCP Server
-   gcloud builds submit ./src/mcp_servers/cocktail_mcp_server \
-     --tag gcr.io/${PROJECT_ID}/cocktail-remote-mcp-server-lg
-
-   gcloud run deploy cocktail-remote-mcp-server-lg \
-     --image gcr.io/${PROJECT_ID}/cocktail-remote-mcp-server-lg \
-     --platform managed \
-     --region ${GOOGLE_CLOUD_REGION} \
-     --allow-unauthenticated
-
-   # Build and deploy Weather MCP Server
-   gcloud builds submit ./src/mcp_servers/weather_mcp_server \
-     --tag gcr.io/${PROJECT_ID}/weather-remote-mcp-server-lg
-
-   gcloud run deploy weather-remote-mcp-server-lg \
-     --image gcr.io/${PROJECT_ID}/weather-remote-mcp-server-lg \
-     --platform managed \
-     --region ${GOOGLE_CLOUD_REGION} \
-     --allow-unauthenticated
-   ```
-
-4. **Update MCP Server URLs:**
-
-   ```bash
-   # Get the deployed URLs
-   export CT_MCP_SERVER_URL=$(gcloud run services describe cocktail-remote-mcp-server-lg \
-     --region ${GOOGLE_CLOUD_REGION} --format="value(status.url)")/mcp/
-
-   export WEA_MCP_SERVER_URL=$(gcloud run services describe weather-remote-mcp-server-lg \
-     --region ${GOOGLE_CLOUD_REGION} --format="value(status.url)")/mcp/
-
-   echo "CT_MCP_SERVER_URL: $CT_MCP_SERVER_URL"
-   echo "WEA_MCP_SERVER_URL: $WEA_MCP_SERVER_URL"
-   ```
-
-5. **Deploy A2A Agents to Vertex AI Agent Engine:**
-
-   ```bash
-   python deployment/deploy_agents.py
-   ```
-
-6. **Deploy Frontend to Cloud Run:**
-
-   ```bash
-   gcloud builds submit ./src/frontend \
-     --tag gcr.io/${PROJECT_ID}/a2a-frontend-lg
-
-   gcloud run deploy a2a-frontend-lg \
-     --image gcr.io/${PROJECT_ID}/a2a-frontend-lg \
-     --platform managed \
-     --region ${GOOGLE_CLOUD_REGION} \
-     --allow-unauthenticated
-   ```
-
-7. **Access the application:**
-   ```bash
-   # Get the frontend URL
-   gcloud run services describe a2a-frontend-lg \
-     --region ${GOOGLE_CLOUD_REGION} \
-     --format="value(status.url)"
-   ```
-
-### Securing the Frontend
-
-To restrict access to the frontend so only you can access it, you need to remove public access and grant invoker permissions to your Google account.
-
-1. **Remove public access (Require Authentication):**
-
-   ```bash
-   gcloud run services remove-iam-policy-binding a2a-frontend-lg \
-     --region=${GOOGLE_CLOUD_REGION} \
-     --project=${PROJECT_ID} \
-     --member="allUsers" \
-     --role="roles/run.invoker"
-   ```
-
-2. **Grant access directly to your account:**
-   ```bash
-   gcloud run services add-iam-policy-binding a2a-frontend-lg \
-     --region=${GOOGLE_CLOUD_REGION} \
-     --project=${PROJECT_ID} \
-     --member="user:YOUR_GOOGLE_EMAIL" \
-     --role="roles/run.invoker"
-   ```
-
-**Note:** Once secured, standard browsing will result in a 403 Forbidden error. To access the secured frontend locally, use the Cloud Run proxy:
-
-```bash
-gcloud run services proxy a2a-frontend-lg \
-  --region=${GOOGLE_CLOUD_REGION} \
-  --project=${PROJECT_ID} \
-  --port=8080
-```
-
-Then visit `http://localhost:8080` in your browser.
+---
 
 ## Testing
 
-### Install Dev Dependencies
+Install dev dependencies first:
 
 ```bash
 uv sync --extra dev
@@ -527,37 +449,30 @@ uv sync --extra dev
 
 ### Unit Tests
 
-Unit tests cover both MCP servers with mocked external dependencies — no running services required.
+Unit tests mock all external dependencies — no running services required:
 
 ```bash
 make test
-# or directly:
-uv run pytest tests/unit/ -v
+# or: uv run pytest tests/unit/ -v
 ```
 
 ### Integration Tests
 
-Integration tests require running MCP server instances (e.g., via `make local-up`). Set the server URLs via environment variables:
+Integration tests require running MCP servers (e.g., via `make local-up`):
 
 ```bash
 export CT_MCP_SERVER_URL=http://localhost:8081/mcp
 export WEA_MCP_SERVER_URL=http://localhost:8082/mcp
 export COCKTAIL_MCP_URL=http://localhost:8081/mcp
 export WEATHER_MCP_URL=http://localhost:8082/mcp
+
 make test-integration
-# or directly:
-uv run pytest -m integration -v
-```
-
-### Run All Tests (excluding integration)
-
-```bash
-uv run pytest -m "not integration" -v
+# or: uv run pytest -m integration -v
 ```
 
 ### Evaluation
 
-ADK evaluation cases are in `tests/eval/`. See [`tests/eval/evalsets/README.md`](tests/eval/evalsets/README.md) for details on the 12 evaluation cases covering direct responses, tool use, orchestrator routing, and edge cases.
+ADK evaluation cases are in `tests/eval/`. See [`tests/eval/evalsets/README.md`](tests/eval/evalsets/README.md) for the 12 evaluation cases covering direct responses, tool use, routing, and edge cases.
 
 ```bash
 adk eval tests/eval/evalsets/basic.evalset.json --config tests/eval/eval_config.json
@@ -567,19 +482,112 @@ adk eval tests/eval/evalsets/basic.evalset.json --config tests/eval/eval_config.
 
 Load tests use [Locust](https://locust.io/). See [`tests/load_test/README.md`](tests/load_test/README.md) for details.
 
-### Development Notebooks
+### Linting & Formatting
 
-Interactive development and testing scripts are in `dev_notebooks/`:
+```bash
+make lint     # ruff check
+make format   # ruff format
+```
 
-- `register_agent_to_gemini_enterprise.py` — Script to register agents to Gemini Enterprise
-- `register_staging_to_ge.py` — Script to register staging environment agents to Gemini Enterprise
+---
+
+## Observability
+
+- **Agents & Frontend**: Structured logging via `google-cloud-logging` SDK (falls back to console logging locally). Each component has a distinct `log_name` for filtering (e.g., `base-orchestrator-agent`, `base-mcp-agent`, `frontend-app`).
+- **MCP Servers**: Standard Python `logging` — Cloud Run captures stdout/stderr automatically.
+- **Dashboard**: All logs consolidated in the **Google Cloud Logging** console. Filter by `log_name` or Cloud Run service name.
+- **Agent Engine**: Execution logs accessible through the Vertex AI Logging interface.
+
+---
+
+## Project Structure
+
+```
+.
+├── src/
+│   ├── a2a_agents/
+│   │   ├── hosting_agent/              # Orchestrator (LangGraph-based routing)
+│   │   │   ├── langgraph_orchestrator_agent.py
+│   │   │   ├── langgraph_orchestrator_agent_executor.py
+│   │   │   └── agent_engine_app.py     # Vertex AI Agent Engine entrypoint
+│   │   ├── weather_agent/              # Weather specialist agent
+│   │   │   ├── agent.py
+│   │   │   ├── agent_executor.py       # Local A2A server for testing
+│   │   │   └── agent_engine_app.py
+│   │   ├── cocktail_agent/             # Cocktail specialist agent
+│   │   │   ├── agent.py
+│   │   │   ├── agent_executor.py
+│   │   │   └── agent_engine_app.py
+│   │   └── common/                     # Shared base classes & utilities
+│   │       ├── langgraph_base_orchestrator_agent.py
+│   │       ├── langgraph_base_mcp_agent.py
+│   │       ├── remote_connection.py    # A2A client connection management
+│   │       └── logging_utils.py        # Cloud Logging setup
+│   ├── frontend/                       # Gradio web UI (Cloud Run)
+│   │   ├── main.py
+│   │   └── Dockerfile
+│   └── mcp_servers/
+│       ├── cocktail_mcp_server/        # TheCocktailDB API wrapper
+│       │   ├── cocktail_server.py
+│       │   └── Dockerfile
+│       └── weather_mcp_server/         # Weather.gov API wrapper
+│           ├── weather_server.py
+│           └── Dockerfile
+├── deployment/
+│   ├── deploy_agents.py                # Python SDK agent deployment
+│   ├── agent_state_manager.py          # Persists deployed agent IDs to GCS
+│   └── terraform/                      # Infrastructure as Code
+│       ├── cloudrun.tf                 # Cloud Run service definitions
+│       ├── service.tf                  # Agent Engine reasoning engines
+│       ├── iam.tf                      # IAM role bindings
+│       ├── gemini_enterprise.tf        # Gemini Enterprise registration
+│       └── deploy.sh                   # Terraform execution wrapper
+├── tests/
+│   ├── unit/                           # Mocked unit tests
+│   ├── integration/                    # Live service integration tests
+│   ├── eval/                           # ADK evaluation cases
+│   └── load_test/                      # Locust load tests
+├── .github/workflows/
+│   ├── deploy.yml                      # CI/CD trigger (staging/main)
+│   └── deploy-env.yml                  # Environment-specific deployment
+├── docs/                               # Design docs and guides
+├── dev_notebooks/                      # Development & registration scripts
+├── .env.example                        # Environment variable template
+├── docker-compose.yml                  # Local development stack
+├── Makefile                            # Developer shortcuts
+└── pyproject.toml                      # Dependencies & tool config
+```
+
+### Makefile Commands
+
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `make install`         | Install all dependencies (`uv sync`)     |
+| `make test`            | Run unit tests                           |
+| `make test-integration`| Run integration tests                    |
+| `make lint`            | Lint with ruff                           |
+| `make format`          | Format with ruff                         |
+| `make local-up`        | Start local Docker Compose stack         |
+| `make local-down`      | Stop local Docker Compose stack          |
+| `make terraform-plan`  | Terraform plan (staging)                 |
+| `make terraform-apply` | Terraform apply (staging)                |
+
+---
+
+## Additional Documentation
+
+- **System Design & Architecture**: [`docs/software_design.md`](docs/software_design.md)
+- **GitHub Actions Auth Guide**: [`docs/github-actions-wif-auth.md`](docs/github-actions-wif-auth.md)
+- **Terraform Deployment Guide**: [`deployment/terraform/TERRAFORM_DEPLOYMENT_GUIDE.md`](deployment/terraform/TERRAFORM_DEPLOYMENT_GUIDE.md)
+- **Testing Summary**: [`tests/TESTING_SUMMARY.md`](tests/TESTING_SUMMARY.md)
+- **Dev Notebooks**: `dev_notebooks/`
 
 ## Disclaimer
 
-**Important**: The sample code provided is for demonstration purposes and illustrates the mechanics of the Agent-to-Agent (A2A) protocol. When building production applications, it is critical to treat any agent operating outside of your direct control as a potentially untrusted entity.
+**Important**: This sample code is for demonstration purposes and illustrates the mechanics of the Agent-to-Agent (A2A) protocol. When building production applications, treat any agent outside your direct control as a potentially untrusted entity.
 
-All data received from an external agent — including but not limited to its AgentCard, messages, artifacts, and task statuses — should be handled as untrusted input. Developers are responsible for implementing appropriate security measures, such as input validation and secure handling of credentials to protect their systems and users.
+All data received from an external agent — including its AgentCard, messages, artifacts, and task statuses — should be handled as untrusted input. Developers are responsible for implementing input validation and secure credential handling.
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE)

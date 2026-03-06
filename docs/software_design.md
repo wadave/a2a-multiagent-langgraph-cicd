@@ -131,7 +131,18 @@ Communication between agents and tool servers follows the standard MCP specifica
 
 ### CI/CD Pipeline
 
-GitHub Actions leverages a **Hybrid Provisioning** pattern to automate:
+#### Environment Onboarding Workflow
+
+The lifecycle to onboard a new environment for the CI/CD pipeline consists of four main steps:
+
+1. **Clone the repository**: Obtain the source code locally.
+2. **Set up GitHub and Google Cloud connection**: Configure Workload Identity Federation (WIF) and bind necessary IAM permissions.
+3. **Terraform setup**: Initialize remote state backend and configure environment variables.
+4. **Push code to trigger pipeline**: Commit and push changes to trigger the automated GitHub Actions workflow.
+
+#### Automated Pipeline Steps
+
+Once triggered, GitHub Actions leverages a **Hybrid Provisioning** pattern to automate:
 
 1. **Testing**: Running unit and evaluation tests on PRs.
 2. **Infrastructure Shells (Terraform)**: Provisioning base infrastructure shells (Cloud Run services, Agent Engine reasoning engines) without failing if code hasn't been deployed yet.
