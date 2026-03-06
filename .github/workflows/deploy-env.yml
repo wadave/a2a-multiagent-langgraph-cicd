@@ -128,7 +128,7 @@ jobs:
             -backend-config="prefix=a2a-multiagent-langgraph-cicd/${{ inputs.tf_prefix }}"
         working-directory: deployment/terraform
 
-      - name: Terraform Apply
+      - name: Terraform Apply (Infrastructure Shells)
         if: steps.changes.outputs.terraform == 'true' || inputs.force_deploy_all
         run: |
           AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
@@ -136,6 +136,8 @@ jobs:
             AGENT_ID="unset"
           fi
 
+          # Apply all infrastructure except the Gemini Enterprise registration module
+          # This provisions the initial shells that the SDK will later update.
           terraform apply -auto-approve \
             -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
             -var="staging_project_id=${{ env.PROJECT_ID }}" \
@@ -146,7 +148,13 @@ jobs:
             -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
             -var="auth_id=${{ env.AUTH_ID }}" \
             -var="ge_app_staging=${{ env.GE_APP_STAGING }}" \
-            -var="agents_region=global"
+            -var="agents_region=global" \
+            -target="google_project_iam_member.cicd_impersonate_app_staging" \
+            -target="google_project_service.required_apis" \
+            -target="google_service_account.app_staging" \
+            -target="google_vertex_ai_reasoning_engine.agent" \
+            -target="google_cloud_run_v2_service.frontend" \
+            -target="google_cloud_run_v2_service.mcp_server"
         working-directory: deployment/terraform
 
       # ---- Deploy MCP Servers to Cloud Run ----
@@ -211,3 +219,29 @@ jobs:
             --region=${{ env.REGION }} \
             --project=${{ env.PROJECT_ID }} \
             --set-env-vars "PROJECT_ID=${{ env.PROJECT_ID }},PROJECT_NUMBER=${{ env.PROJECT_NUMBER }},AGENT_ENGINE_ID=${AGENT_ID},GOOGLE_CLOUD_LOCATION=${{ env.REGION }}"
+
+      # ---- Terraform Apply (Gemini Enterprise Registration) ----
+
+      - name: Terraform Apply (Gemini Enterprise Registration)
+        if: steps.changes.outputs.terraform == 'true' || steps.changes.outputs.agents == 'true' || inputs.force_deploy_all
+        run: |
+          AGENT_ID="${{ steps.deploy_agents.outputs.AGENT_ENGINE_ID }}"
+          if [ -z "$AGENT_ID" ]; then
+            AGENT_ID="${{ steps.retrieve_state.outputs.PERSISTED_AGENT_ENGINE_ID }}"
+          fi
+
+          # Apply only the Gemini Enterprise registration after SDK deployment
+          terraform apply -auto-approve \
+            -var="cicd_runner_project_id=${{ env.PROJECT_ID }}" \
+            -var="staging_project_id=${{ env.PROJECT_ID }}" \
+            -var="prod_project_id=" \
+            -var="project_number=${{ env.PROJECT_NUMBER }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="agent_engine_id=${AGENT_ID}" \
+            -var="oauth_client_id_secret_name=${{ env.OAUTH_CLIENT_ID_SECRET_NAME }}" \
+            -var="auth_id=${{ env.AUTH_ID }}" \
+            -var="ge_app_staging=${{ env.GE_APP_STAGING }}" \
+            -var="agents_region=global" \
+            -target="module.gemini_enterprise_oauth" \
+            -target="module.gemini_enterprise_agent_engine_register"
+        working-directory: deployment/terraform

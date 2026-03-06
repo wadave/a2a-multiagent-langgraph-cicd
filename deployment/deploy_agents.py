@@ -11,32 +11,38 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Deploy all A2A agents to Vertex AI Agent Engine.
+
+Uses AgentEngineConfig with source_packages to deploy agents via source_code_spec.
+This is compatible with Terraform-created Agent Engine shells (which also use source_code_spec).
+
+Environment variables:
+    PROJECT_ID: GCP project ID for deployment
+    PROJECT_NUMBER: GCP project number
+    GOOGLE_CLOUD_REGION: GCP region (default: us-central1)
+    CT_MCP_SERVER_URL: Cocktail MCP server URL
+    WEA_MCP_SERVER_URL: Weather MCP server URL
+    ENVIRONMENT: Deployment environment (staging/prod)
+    BUCKET_NAME: GCS bucket for staging (default: {PROJECT_ID}-bucket)
+    GOOGLE_GENAI_MODEL: Model name (default: gemini-2.5-flash)
+"""
+import logging
 import os
 import sys
 import traceback
 import tomllib
-import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 import vertexai
-from google.genai import types
-from vertexai.preview.reasoning_engines import A2aAgent
-
-from a2a_agents.cocktail_agent.cocktail_agent_card import cocktail_agent_card
-from a2a_agents.cocktail_agent.agent_executor import CocktailAgentExecutor
-
-from a2a_agents.weather_agent.weather_agent_card import weather_agent_card
-from a2a_agents.weather_agent.agent_executor import WeatherAgentExecutor
-
-from a2a_agents.hosting_agent.hosting_agent_card import hosting_agent_card
-from a2a_agents.hosting_agent.langgraph_orchestrator_agent_executor import HostingAgentExecutor
+from vertexai._genai.types import AgentEngineConfig
 
 from agent_state_manager import AgentStateManager
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def get_agent_requirements() -> list[str]:
@@ -57,96 +63,58 @@ def find_existing_agent(client, display_name):
             )
             engine_name = getattr(agent_engine.api_resource, 'name', '')
             if engine_display_name == display_name:
-                logging.info(f"Found existing agent engine '{display_name}': {engine_name}")
+                logger.info(f"Found existing agent engine '{display_name}': {engine_name}")
                 return engine_name
     except Exception as e:
-        logging.warning(f"Could not list agent engines: {e}")
+        logger.warning(f"Could not list agent engines: {e}")
     return None
 
 
-def deploy_agent(client, agent_name, agent_card, executor_builder, project_id, project_number, location, bucket_name, extra_env_vars, extra_packages):
-    agent = A2aAgent(agent_card=agent_card, agent_executor_builder=executor_builder)
+def deploy_agent(client, display_name, description, entrypoint_module, entrypoint_object,
+                 service_account, env_vars, requirements_file="requirements.txt"):
+    """Deploy or update an agent using AgentEngineConfig (source_code_spec compatible)."""
 
-    env_vars = {
-        "PROJECT_ID": project_id,
-        "LOCATION": location,
-        "BUCKET": bucket_name,
-        "GOOGLE_GENAI_USE_VERTEXAI": "TRUE",
-        "DEBUG_MODE": "False",
-    }
-    env_vars.update(extra_env_vars)
+    config = AgentEngineConfig(
+        display_name=display_name,
+        description=description,
+        source_packages=["./a2a_agents"],
+        entrypoint_module=entrypoint_module,
+        entrypoint_object=entrypoint_object,
+        requirements_file=requirements_file,
+        env_vars={k: v for k, v in env_vars.items() if v},
+        service_account=service_account,
+    )
 
-    # Vertex AI rejects empty string env var values
-    env_vars = {k: v for k, v in env_vars.items() if v}
-
-    logging.info(f"Deploying {agent_name} to Agent Engine...")
-
-    if "a2a_agents" not in extra_packages:
-        extra_packages.append("a2a_agents")
-
-    config = {
-        "display_name": agent.agent_card.name,
-        "description": agent.agent_card.description,
-        "service_account": f"{project_number}-compute@developer.gserviceaccount.com",
-        "requirements": get_agent_requirements(),
-        "http_options": {
-            "base_url": f"https://{location}-aiplatform.googleapis.com",
-            "api_version": "v1beta1",
-        },
-        "staging_bucket": f"gs://{bucket_name}",
-        "env_vars": env_vars,
-        "extra_packages": extra_packages,
-    }
-
-    # Idempotent: update if exists, create if new
-    existing_name = find_existing_agent(client, agent.agent_card.name)
+    existing_name = find_existing_agent(client, display_name)
     if existing_name:
-        logging.info(f"Agent '{agent.agent_card.name}' already exists. Updating...")
+        logger.info(f"Updating existing agent '{display_name}': {existing_name}")
         try:
             remote_agent = client.agent_engines.update(
                 name=existing_name,
-                agent=agent,
-                config=config
+                config=config,
             )
-            logging.info(f"Updated {agent_name} successfully: {remote_agent.api_resource.name}")
-            return remote_agent.api_resource.name
         except Exception as e:
-            if "spec.package_spec" in str(e):
-                logging.warning(f"Legacy package_spec detected for {agent.agent_card.name}. Deleting and recreating...")
-                from google.genai.errors import ClientError
-                try:
-                    client.agent_engines.delete(name=existing_name, force=True)
-                except Exception as del_e:
-                    logging.warning(f"Error during legacy agent deletion: {del_e}")
+            if "spec.package_spec" in str(e) or "deployment_source" in str(e):
+                logger.warning(f"Legacy package_spec error detected. Deleting and recreating '{display_name}' ({existing_name})...")
+                # Fallback: Delete and recreate
+                client.agent_engines.delete(name=existing_name)
+                logger.info(f"Creating new agent '{display_name}' after deletion...")
+                remote_agent = client.agent_engines.create(config=config)
             else:
-                raise e
+                raise
+        logger.info(f"Updated '{display_name}' successfully: {remote_agent.api_resource.name}")
+        return remote_agent.api_resource.name
 
-    remote_agent = client.agent_engines.create(
-        agent=agent,
-        config=config
-    )
-
-    # Fix backend bug: Vertex AI ignores displayName on creation, so patch immediately
-    try:
-        client.agent_engines.update(
-            name=remote_agent.api_resource.name,
-            config={
-                "display_name": agent.agent_card.name,
-                "description": agent.agent_card.description
-            }
-        )
-        logging.info(f"Patched display name for {agent_name}")
-    except Exception as patch_e:
-        logging.warning(f"Failed to patch display name for {agent_name}: {patch_e}")
-
-    logging.info(f"Deployed {agent_name} successfully: {remote_agent.api_resource.name}")
+    logger.info(f"Creating new agent '{display_name}'...")
+    remote_agent = client.agent_engines.create(config=config)
+    logger.info(f"Created '{display_name}' successfully: {remote_agent.api_resource.name}")
     return remote_agent.api_resource.name
 
 
 def main():
     src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
     os.chdir(src_dir)
-    logging.info(f"Changed working directory to {src_dir}")
+    logger.info(f"Changed working directory to {src_dir}")
 
     load_dotenv()
 
@@ -155,126 +123,117 @@ def main():
     project_number = os.environ.get("PROJECT_NUMBER")
     google_genai_model = os.environ.get("GOOGLE_GENAI_MODEL", "gemini-2.5-flash")
     bucket_name = os.environ.get("BUCKET_NAME", f"{project_id}-bucket")
+    service_account = f"{project_number}-compute@developer.gserviceaccount.com"
 
     environment = os.environ.get("ENVIRONMENT", "staging")
     state_manager = AgentStateManager(project_id, environment, location)
 
     if not project_id or not project_number:
-        logging.error("PROJECT_ID and PROJECT_NUMBER must be set in environment.")
+        logger.error("PROJECT_ID and PROJECT_NUMBER must be set in environment.")
         sys.exit(1)
 
     ct_mcp_url = os.environ.get("CT_MCP_SERVER_URL")
     wea_mcp_url = os.environ.get("WEA_MCP_SERVER_URL")
 
     if not ct_mcp_url or not wea_mcp_url:
-        logging.error("CT_MCP_SERVER_URL and WEA_MCP_SERVER_URL must be set in environment.")
+        logger.error("CT_MCP_SERVER_URL and WEA_MCP_SERVER_URL must be set in environment.")
         sys.exit(1)
+
+    # Write a requirements file for Agent Engine from pyproject.toml
+    requirements = get_agent_requirements()
+    requirements_file = os.path.join(src_dir, ".requirements.txt")
+    with open(requirements_file, "w") as f:
+        f.write("\n".join(requirements) + "\n")
+    logger.info(f"Wrote {len(requirements)} requirements to {requirements_file}")
 
     vertexai.init(project=project_id, location=location, staging_bucket=f"gs://{bucket_name}")
-    client = vertexai.Client(
-        project=project_id,
-        location=location,
-        http_options=types.HttpOptions(
-            api_version="v1beta1", base_url=f"https://{location}-aiplatform.googleapis.com/"
-        ),
-    )
+    client = vertexai.Client(project=project_id, location=location)
 
-    deployed_agents = {}
+    base_env = {
+        "PROJECT_ID": project_id,
+        "LOCATION": location,
+        "BUCKET": bucket_name,
+        "GOOGLE_GENAI_USE_VERTEXAI": "TRUE",
+        "PROJECT_NUMBER": project_number,
+        "GOOGLE_CLOUD_LOCATION": location,
+        "GOOGLE_GENAI_MODEL": google_genai_model,
+    }
 
+    # --- Deploy Cocktail Agent ---
     try:
+        ct_env = {**base_env, "CT_MCP_SERVER_URL": ct_mcp_url}
         ct_agent_name = deploy_agent(
             client,
-            "Cocktail lg Agent",
-            cocktail_agent_card,
-            CocktailAgentExecutor,
-            project_id,
-            project_number,
-            location,
-            bucket_name,
-            {
-                "CT_MCP_SERVER_URL": ct_mcp_url,
-                "PROJECT_NUMBER": project_number,
-                "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model,
-            },
-            ["a2a_agents"],
+            display_name="Cocktail Agent LangGraph",
+            description="A2A agent for cocktail information",
+            entrypoint_module="a2a_agents.cocktail_agent.agent_engine_app",
+            entrypoint_object="agent_engine",
+            service_account=service_account,
+            env_vars=ct_env,
+            requirements_file=".requirements.txt",
         )
-        deployed_agents["cocktail"] = ct_agent_name
         state_manager.update_agent("cocktail", ct_agent_name)
     except Exception as e:
-        logging.error(f"Failed to deploy Cocktail Agent: {e}")
+        logger.error(f"Failed to deploy Cocktail Agent: {e}")
         traceback.print_exc()
         sys.exit(1)
 
+    # --- Deploy Weather Agent ---
     try:
+        wea_env = {**base_env, "WEA_MCP_SERVER_URL": wea_mcp_url}
         wea_agent_name = deploy_agent(
             client,
-            "Weather lg Agent",
-            weather_agent_card,
-            WeatherAgentExecutor,
-            project_id,
-            project_number,
-            location,
-            bucket_name,
-            {
-                "WEA_MCP_SERVER_URL": wea_mcp_url,
-                "PROJECT_NUMBER": project_number,
-                "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model,
-            },
-            ["a2a_agents"],
+            display_name="Weather Agent LangGraph",
+            description="A2A agent for weather forecasts",
+            entrypoint_module="a2a_agents.weather_agent.agent_engine_app",
+            entrypoint_object="agent_engine",
+            service_account=service_account,
+            env_vars=wea_env,
+            requirements_file=".requirements.txt",
         )
-        deployed_agents["weather"] = wea_agent_name
         state_manager.update_agent("weather", wea_agent_name)
     except Exception as e:
-        logging.error(f"Failed to deploy Weather Agent: {e}")
+        logger.error(f"Failed to deploy Weather Agent: {e}")
         traceback.print_exc()
         sys.exit(1)
 
+    # --- Deploy Hosting Agent ---
     ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
     wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}/a2a"
 
     try:
+        host_env = {**base_env, "CT_AGENT_URL": ct_agent_url, "WEA_AGENT_URL": wea_agent_url}
         host_agent_name = deploy_agent(
             client,
-            "Hosting lg Agent",
-            hosting_agent_card,
-            HostingAgentExecutor,
-            project_id,
-            project_number,
-            location,
-            bucket_name,
-            {
-                "WEA_AGENT_URL": wea_agent_url,
-                "CT_AGENT_URL": ct_agent_url,
-                "PROJECT_NUMBER": project_number,
-                "GOOGLE_CLOUD_LOCATION": location,
-                "GOOGLE_GENAI_MODEL": google_genai_model,
-            },
-            ["a2a_agents"],
+            display_name="Hosting Agent LangGraph",
+            description="Orchestrator agent that delegates to specialist agents",
+            entrypoint_module="a2a_agents.hosting_agent.agent_engine_app",
+            entrypoint_object="agent_engine",
+            service_account=service_account,
+            env_vars=host_env,
+            requirements_file=".requirements.txt",
         )
-        deployed_agents["hosting"] = host_agent_name
         state_manager.update_agent("hosting", host_agent_name)
     except Exception as e:
-        logging.error(f"Failed to deploy Hosting Agent: {e}")
+        logger.error(f"Failed to deploy Hosting Agent: {e}")
         traceback.print_exc()
         sys.exit(1)
 
-    logging.info("All agents deployed successfully.")
+    logger.info("All agents deployed successfully.")
 
     # Write hosting agent ID to file for Cloud Build pipeline
     hosting_agent_id_file = os.environ.get("HOSTING_AGENT_ID_FILE")
     if hosting_agent_id_file:
         with open(hosting_agent_id_file, "w") as f:
             f.write(host_agent_name)
-        logging.info(f"Wrote hosting agent ID to {hosting_agent_id_file}")
+        logger.info(f"Wrote hosting agent ID to {hosting_agent_id_file}")
 
     # Also export to GITHUB_OUTPUT for backward compatibility
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with open(github_output, "a") as f:
             f.write(f"AGENT_ENGINE_ID={host_agent_name}\n")
-        logging.info("Exported AGENT_ENGINE_ID to GITHUB_OUTPUT.")
+        logger.info("Exported AGENT_ENGINE_ID to GITHUB_OUTPUT.")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@
 
 locals {
   # Read base64-encoded dummy source tarball from local file
-  # This provides minimal source code for initial Reasoning Engine creation
   dummy_source_b64 = trimspace(file("${path.module}/dummy/source-b64.txt"))
 
   # Agent definitions - display_name must match what deploy_agents.py uses
@@ -68,7 +67,6 @@ resource "google_vertex_ai_reasoning_engine" "agent" {
     }
   }
 
-  # Prevent Terraform from overwriting source code updated by deploy_agents.py
   lifecycle {
     ignore_changes = [
       spec[0].source_code_spec,
