@@ -215,8 +215,8 @@ export PROJECT_NUMBER=YOUR_PROJECT_NUMBER
 export GOOGLE_CLOUD_REGION=us-central1
 
 # Required: MCP Server URLs (after MCP servers are deployed)
-export CT_MCP_SERVER_URL=https://cocktail-remote-mcp-server-lg-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
-export WEA_MCP_SERVER_URL=https://weather-remote-mcp-server-lg-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
+export CT_MCP_SERVER_URL=https://cocktail-mcp-lg-staging-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
+export WEA_MCP_SERVER_URL=https://weather-mcp-lg-staging-${PROJECT_NUMBER}.${GOOGLE_CLOUD_REGION}.run.app/mcp/
 
 # Required: Python path for agent deployment
 export PYTHONPATH=src

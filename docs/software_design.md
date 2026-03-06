@@ -142,9 +142,10 @@ GitHub Actions leverages a **Hybrid Provisioning** pattern to automate:
 
 Terraform modules manage:
 
-- Cloud Run services for all agents and MCP servers.
-- Secret Manager versions.
-- Gemini Enterprise registration.
+- Cloud Run service shells for MCP servers and the Frontend.
+- Agent Engine reasoning engine shells (agents are deployed via the Python SDK).
+- IAM and service account configuration.
+- Gemini Enterprise OAuth and agent registration.
 
 ## Testing Strategy
 
