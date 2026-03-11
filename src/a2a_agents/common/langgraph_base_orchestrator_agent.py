@@ -109,22 +109,20 @@ class LanggraphBaseOrchestratorAgent(ABC):
         Args:
             address: The remote agent URL
         """
+        # Strip trailing slash to avoid double slash when appending paths
         address = address.rstrip("/")
 
         if "aiplatform.googleapis.com" in address and "reasoningEngines" in address:
-            # Vertex AI custom methods require colon directly on the resource
-            # name (no slash), e.g. .../reasoningEngines/ID:agent_card.
-            # A2ACardResolver always joins with '/', so fetch directly.
-            url = f"{address}:agent_card"
-            response = await self.httpx_client.get(url)
-            response.raise_for_status()
-            card = AgentCard.model_validate(response.json())
+            # For Reasoning Engines using the A2A template, the card is often
+            # available under the /a2a subpath.
+            agent_card_path = "a2a/v1/card"
         else:
-            card_resolver = A2ACardResolver(
-                self.httpx_client, base_url=address, agent_card_path="/v1/card"
-            )
-            card = await card_resolver.get_agent_card()
+            agent_card_path = "v1/card"
 
+        card_resolver = A2ACardResolver(
+            self.httpx_client, base_url=address, agent_card_path=agent_card_path
+        )
+        card = await card_resolver.get_agent_card()
         logger.info(f"Retrieved card for {card.name} from {address}")
         self.register_agent_card(card)
 
