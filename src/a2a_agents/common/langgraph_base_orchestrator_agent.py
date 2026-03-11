@@ -96,25 +96,35 @@ class LanggraphBaseOrchestratorAgent(ABC):
             remote_agent_addresses: List of remote agent URLs
         """
         logger.info(f"Fetching agent cards from {len(remote_agent_addresses)} addresses...")
+        cards_before = len(self.cards)
         async with asyncio.TaskGroup() as task_group:
             for address in remote_agent_addresses:
                 task_group.create_task(self.retrieve_card(address))
 
         self._cards_loaded = True
-        logger.info(f"All agent cards loaded! Agents available: {list(self.cards.keys())}")
+        newly_loaded = len(self.cards) - cards_before
+        failed = len(remote_agent_addresses) - newly_loaded
+        if failed:
+            logger.warning(
+                f"Agent card loading complete. Loaded: {newly_loaded}/{len(remote_agent_addresses)}, "
+                f"Agents available: {list(self.cards.keys())}"
+            )
+        else:
+            logger.info(f"All agent cards loaded! Agents available: {list(self.cards.keys())}")
 
-    async def retrieve_card(self, address: str):
-        """Retrieve an agent card from a remote agent address.
+    async def retrieve_card(self, address: str, max_retries: int = 3):
+        """Retrieve an agent card from a remote agent address with retries.
 
         Args:
             address: The remote agent URL
+            max_retries: Number of retry attempts for transient failures
         """
         # Strip trailing slash to avoid double slash when appending paths
         address = address.rstrip("/")
 
         if "aiplatform.googleapis.com" in address and "reasoningEngines" in address:
             # For Reasoning Engines using the A2A template, the card is often
-            # available under the /a2a subpath.
+            # available under the /a2a subpath. The A2ACardResolver will handle the slash.
             agent_card_path = "a2a/v1/card"
         else:
             agent_card_path = "v1/card"
@@ -122,9 +132,43 @@ class LanggraphBaseOrchestratorAgent(ABC):
         card_resolver = A2ACardResolver(
             self.httpx_client, base_url=address, agent_card_path=agent_card_path
         )
-        card = await card_resolver.get_agent_card()
-        logger.info(f"Retrieved card for {card.name} from {address}")
-        self.register_agent_card(card)
+
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                card = await card_resolver.get_agent_card()
+                logger.info(f"Retrieved card for {card.name} from {address}")
+                self.register_agent_card(card)
+                return
+            except (httpx.ConnectError, httpx.TimeoutException) as e:
+                # Transient network errors — worth retrying
+                last_error = e
+                logger.warning(
+                    f"Attempt {attempt + 1}/{max_retries} failed to fetch card from {address}: {e}"
+                )
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2**attempt)  # Exponential backoff
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code >= 500:
+                    # Server error — worth retrying
+                    last_error = e
+                    logger.warning(
+                        f"Attempt {attempt + 1}/{max_retries} failed to fetch card from {address}: {e}"
+                    )
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(2**attempt)
+                else:
+                    # Client error (4xx) — not retryable
+                    logger.error(f"Non-retryable error fetching card from {address}: {e}")
+                    return
+            except Exception as e:
+                # Unknown error — don't retry
+                logger.error(f"Unexpected error fetching card from {address}: {e}")
+                return
+
+        logger.error(
+            f"Failed to retrieve agent card from {address} after {max_retries} attempts: {last_error}"
+        )
 
     def register_agent_card(self, card: AgentCard):
         """Register an agent card and create a connection to it.
