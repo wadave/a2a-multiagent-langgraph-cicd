@@ -53,9 +53,7 @@ logger = logging.getLogger(__name__)
 
 def generate_class_methods_from_agent(agent_instance: Any) -> list[dict[str, Any]]:
     """Generate method specifications with schemas from agent's register_operations()."""
-    registered_operations = _agent_engines_utils._get_registered_operations(
-        agent=agent_instance
-    )
+    registered_operations = _agent_engines_utils._get_registered_operations(agent=agent_instance)
     class_methods_spec = _agent_engines_utils._generate_class_methods_spec_or_raise(
         agent=agent_instance,
         operations=registered_operations,
@@ -159,7 +157,7 @@ def deploy_agent(
                     remote_agent = client.agent_engines.create(config=config)
                 else:
                     raise e2
-        
+
         logger.info(f"Updated '{display_name}' successfully: {remote_agent.api_resource.name}")
         return remote_agent.api_resource.name
 
@@ -197,7 +195,7 @@ def main():
     bucket_name = os.environ.get("BUCKET_NAME", f"{project_id}-bucket")
     environment = os.environ.get("ENVIRONMENT", "staging")
     state_manager = AgentStateManager(project_id, environment, location)
-    
+
     # Use the app service account created by Terraform: a2a-multiagent-lg-cicd-app
     service_account = f"a2a-multiagent-lg-cicd-app@{project_id}.iam.gserviceaccount.com"
 
@@ -213,12 +211,12 @@ def main():
         sys.exit(1)
 
     requirements = get_agent_requirements()
-    
+
     requirements_path = os.path.join(src_dir, "a2a_agents", ".requirements.txt")
     with open(requirements_path, "w") as f:
         f.write("\n".join(requirements))
     logger.info(f"Wrote requirements to {requirements_path}")
-    
+
     # We pass the relative path as expected by vertex SDK for remote bundling
     rel_req_path = "a2a_agents/.requirements.txt"
 
@@ -274,8 +272,8 @@ def main():
         sys.exit(1)
 
     # --- Deploy Hosting Agent ---
-    ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}/a2a"
-    wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}/a2a"
+    ct_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{ct_agent_name}"
+    wea_agent_url = f"https://{location}-aiplatform.googleapis.com/v1beta1/{wea_agent_name}"
 
     try:
         host_env = {**base_env, "CT_AGENT_URL": ct_agent_url, "WEA_AGENT_URL": wea_agent_url}

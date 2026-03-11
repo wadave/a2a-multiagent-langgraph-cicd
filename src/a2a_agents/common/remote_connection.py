@@ -14,6 +14,7 @@
 # Author: Dave Wang
 """Remote connections helper."""
 
+import json
 import traceback
 from collections.abc import Callable
 
@@ -48,7 +49,10 @@ class RemoteAgentConnections:
     async def send_message(self, message: Message) -> Task | Message | None:
         lastTask: Task | None = None
         try:
-            print("Sending message to remote agent:", message)
+            print(
+                "Sending message to remote agent payload:",
+                json.dumps(message.model_dump(exclude_none=True), indent=2),
+            )
             async for event in self.agent_client.send_message(message):
                 if isinstance(event, Message):
                     print("got event object from remote agent:", event)

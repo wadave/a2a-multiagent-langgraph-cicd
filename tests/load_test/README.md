@@ -54,7 +54,7 @@ export PROJECT_ID="dw-genai-dev"
 export PROJECT_NUMBER="496235138247"
 export AGENT_ENGINE_ID="7540524410566868992"
 
-locust -f tests/load_test/load_test_comprehensive.py \
+locust -f tests/load_test/load_comprehensive_test.py \
   --headless \
   -t 60s -u 10 -r 2 \
   --csv=tests/load_test/.results/comprehensive_results \
@@ -89,28 +89,28 @@ The comprehensive load test includes:
 
 ### Light Load (5 concurrent users, 30 seconds)
 ```bash
-locust -f tests/load_test/load_test_comprehensive.py \
+locust -f tests/load_test/load_comprehensive_test.py \
   --headless -t 30s -u 5 -r 1 \
   --csv=.results/light --html=.results/light.html
 ```
 
 ### Medium Load (20 concurrent users, 2 minutes)
 ```bash
-locust -f tests/load_test/load_test_comprehensive.py \
+locust -f tests/load_test/load_comprehensive_test.py \
   --headless -t 2m -u 20 -r 2 \
   --csv=.results/medium --html=.results/medium.html
 ```
 
 ### Heavy Load (50 concurrent users, 5 minutes)
 ```bash
-locust -f tests/load_test/load_test_comprehensive.py \
+locust -f tests/load_test/load_comprehensive_test.py \
   --headless -t 5m -u 50 -r 5 \
   --csv=.results/heavy --html=.results/heavy.html
 ```
 
 ### Interactive Mode (with Web UI)
 ```bash
-locust -f tests/load_test/load_test_comprehensive.py
+locust -f tests/load_test/load_comprehensive_test.py
 # Then open http://localhost:8089 in browser
 ```
 
@@ -206,7 +206,7 @@ Add to your CI/CD pipeline:
 - name: Run Load Test
   run: |
     export _AUTH_TOKEN=$(gcloud auth print-access-token -q)
-    locust -f tests/load_test/load_test_comprehensive.py \
+    locust -f tests/load_test/load_comprehensive_test.py \
       --headless -t 30s -u 5 -r 1 \
       --csv=load_test_results --html=load_test_report.html
 

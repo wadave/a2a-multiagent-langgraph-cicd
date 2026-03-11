@@ -18,7 +18,8 @@ dependencies = [
   "langgraph>=0.6.8",
   "python-dotenv>=1.0.0",
   "google-cloud-logging>=3.12.1",
-  "pre-commit>=4.5.1"
+  "pre-commit>=4.5.1",
+  "locust>=2.43.3"
 ]
 
 [project.optional-dependencies]

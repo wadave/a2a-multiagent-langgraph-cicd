@@ -109,8 +109,14 @@ class LanggraphBaseOrchestratorAgent(ABC):
         Args:
             address: The remote agent URL
         """
+        # Check if address is a Vertex AI resource URL
+        if "aiplatform.googleapis.com" in address and "reasoningEngines" in address:
+            agent_card_path = ":agent_card"
+        else:
+            agent_card_path = "/v1/card"
+
         card_resolver = A2ACardResolver(
-            self.httpx_client, base_url=address, agent_card_path="/v1/card"
+            self.httpx_client, base_url=address, agent_card_path=agent_card_path
         )
         card = await card_resolver.get_agent_card()
         logger.info(f"Retrieved card for {card.name} from {address}")
@@ -304,13 +310,17 @@ class LanggraphBaseOrchestratorAgent(ABC):
         if not message_id:
             message_id = str(uuid.uuid4())
 
-        request_message = Message(
-            role=Role.user,
-            parts=[Part(root=TextPart(text=message))],
-            message_id=message_id,
-            context_id=context_id,
-            task_id=task_id,
-        )
+        request_kwargs = {
+            "role": Role.user,
+            "parts": [Part(root=TextPart(text=message))],
+            "message_id": message_id,
+        }
+        if context_id:
+            request_kwargs["context_id"] = context_id
+        if task_id:
+            request_kwargs["task_id"] = task_id
+
+        request_message = Message(**request_kwargs)
         response = await client.send_message(request_message)
 
         if isinstance(response, Message):
