@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Comprehensive load testing for A2A multi-agent system."""
+"""Load testing for A2A multi-agent system."""
 
 import logging
 import os
@@ -36,9 +36,9 @@ AGENT_ENGINE_ID = os.environ.get("AGENT_ENGINE_ID")
 if not PROJECT_ID or not PROJECT_NUMBER or not AGENT_ENGINE_ID:
     raise ValueError("PROJECT_ID, PROJECT_NUMBER, and AGENT_ENGINE_ID must be set")
 
-# Convert to streaming URL
+# Convert to standard query URL
 base_url = f"https://{LOCATION}-aiplatform.googleapis.com"
-url_path = f"/v1beta1/projects/{PROJECT_NUMBER}/locations/{LOCATION}/reasoningEngines/{AGENT_ENGINE_ID}:streamQuery"
+url_path = f"/v1beta1/projects/{PROJECT_NUMBER}/locations/{LOCATION}/reasoningEngines/{AGENT_ENGINE_ID}:query"
 
 logger.info("Load Test Configuration:")
 logger.info(f"  Project: {PROJECT_ID}")
@@ -124,14 +124,22 @@ class HostingAgentUser(HttpUser):
             "Authorization": f"Bearer {os.environ.get('_AUTH_TOKEN', '')}",
         }
 
-        # The :streamQuery endpoint expects class_method and input
+        # The :query endpoint expects class_method and input
         data = {
-            "class_method": "async_stream_query",
-            "input": {"message": {"role": "ROLE_USER", "parts": [{"text": message_text}]}},
+            "class_method": "on_message_send",
+            "input": {
+                "request": {
+                    "message": {
+                        "messageId": f"load_test_{int(time.time() * 1000)}",
+                        "role": "ROLE_USER",
+                        "parts": [{"text": message_text}],
+                    }
+                }
+            },
         }
 
         start_time = time.time()
-        request_name = f":streamQuery {category}"
+        request_name = f":query {category}"
 
         try:
             with self.client.post(
@@ -140,18 +148,13 @@ class HostingAgentUser(HttpUser):
                 json=data,
                 catch_response=True,
                 name=request_name,
-                stream=True,
-                params={"alt": "sse"},
             ) as response:
                 if response.status_code == 200:
                     total_time = (time.time() - start_time) * 1000
                     logger.debug(
-                        f"Successful {category} streaming query: {message_text[:50]}... "
+                        f"Successful {category} query: {message_text[:50]}... "
                         f"(took {total_time:.0f}ms)"
                     )
-                    # Consume stream
-                    for _ in response.iter_lines():
-                        pass
                     response.success()
                 else:
                     logger.error(f"Status {response.status_code} for {category}: {response.text}")
@@ -210,8 +213,16 @@ class MixedLoadUser(HttpUser):
         }
 
         data = {
-            "class_method": "async_stream_query",
-            "input": {"message": {"role": "ROLE_USER", "parts": [{"text": message_text}]}},
+            "class_method": "on_message_send",
+            "input": {
+                "request": {
+                    "message": {
+                        "messageId": f"load_test_{int(time.time() * 1000)}",
+                        "role": "ROLE_USER",
+                        "parts": [{"text": message_text}],
+                    }
+                }
+            },
         }
 
         with self.client.post(
@@ -219,13 +230,10 @@ class MixedLoadUser(HttpUser):
             headers=headers,
             json=data,
             catch_response=True,
-            name=f":streamQuery {category}",
-            stream=True,
-            params={"alt": "sse"},
+            name=f":query {category}",
         ) as response:
             if response.status_code == 200:
-                for _ in response.iter_lines():
-                    pass
                 response.success()
             else:
+                logger.error(f"Status {response.status_code} for mixed-{category}: {response.text}")
                 response.failure(f"Status {response.status_code}")
