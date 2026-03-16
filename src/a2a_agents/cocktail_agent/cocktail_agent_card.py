@@ -49,7 +49,7 @@ cocktail_agent_skill = AgentSkill(
 
 # Use the helper function to create a complete Agent Card
 cocktail_agent_card = create_agent_card(
-    agent_name="Cocktail Agent LangGraph",
+    agent_name="Cocktail Agent adk-mb - ADK",
     description="A helpful assistant agent that can answer questions.",
     skills=[cocktail_agent_skill],
 )

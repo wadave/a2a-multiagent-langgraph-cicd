@@ -25,11 +25,11 @@ format_ingredient = _mod.format_ingredient
 make_cocktaildb_request = _mod.make_cocktaildb_request
 
 # @mcp.tool() wraps functions in FunctionTool; access the original via .fn
-search_cocktail_by_name = _mod.search_cocktail_by_name.fn
-list_cocktails_by_first_letter = _mod.list_cocktails_by_first_letter.fn
-search_ingredient_by_name = _mod.search_ingredient_by_name.fn
-list_random_cocktails = _mod.list_random_cocktails.fn
-lookup_cocktail_details_by_id = _mod.lookup_cocktail_details_by_id.fn
+search_cocktail_by_name = _mod.search_cocktail_by_name
+list_cocktails_by_first_letter = _mod.list_cocktails_by_first_letter
+search_ingredient_by_name = _mod.search_ingredient_by_name
+list_random_cocktails = _mod.list_random_cocktails
+lookup_cocktail_details_by_id = _mod.lookup_cocktail_details_by_id
 
 
 # ---------------------------------------------------------------------------

@@ -40,7 +40,7 @@ hosting_agent_skill = AgentSkill(
 
 # Use the helper function to create a complete Agent Card
 hosting_agent_card = create_agent_card(
-    agent_name="Hosting Agent LangGraph",
+    agent_name="Hosting Agent adk-mb - ADK",
     description="A helpful assistant agent that can answer questions.",
     skills=[hosting_agent_skill],
 )

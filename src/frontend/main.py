@@ -62,7 +62,7 @@ load_dotenv()
 PROJECT_ID = os.getenv("PROJECT_ID")
 PROJECT_NUMBER = os.getenv("PROJECT_NUMBER")
 AGENT_ENGINE_ID = os.getenv("AGENT_ENGINE_ID")
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION") or "us-central1"
 
 
 # Initialize Vertex AI session
